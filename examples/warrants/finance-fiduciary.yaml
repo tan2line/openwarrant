@@ -1,0 +1,35 @@
+warrant:
+  id: "fiduciary-trade-execution-001"
+  issuer: "Meridian Wealth Management Compliance"
+  signature: "ed25519:base64encodedSignatureHere..."
+
+  who_can_act:
+    roles:
+      - "portfolio_manager"
+      - "senior_advisor"
+
+  what_they_can_do:
+    actions:
+      - "execute-trade"
+      - "rebalance-portfolio"
+      - "generate-trade-confirmation"
+    data_types:
+      - "financial-account"
+      - "portfolio-holdings"
+      - "trade-orders"
+
+  under_what_conditions:
+    - client_suitability_current: required  # Suitability review within 12 months
+    - trade_within_ips: required            # Consistent with Investment Policy Statement
+    - single_trade_limit: 50000             # Escalate above this amount
+    - concentration_check: required          # No single position > 10% of portfolio
+    - best_execution_verified: required
+
+  valid_from: "2026-01-01T00:00:00Z"
+  valid_until: "2026-06-30T23:59:59Z"
+
+  trust_level_required: 2
+  audit_required: true
+  escalation_target: "chief-compliance@meridianwm.com"
+
+  notes: "Covers routine portfolio management trades. Trades exceeding $50K require human approval. Options, alternatives, and margin trading require separate warrant."

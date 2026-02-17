@@ -1,0 +1,36 @@
+warrant:
+  id: "hipaa-clinical-disclosure-001"
+  issuer: "Memorial Hospital Compliance Office"
+  signature: "ed25519:base64encodedSignatureHere..."
+
+  who_can_act:
+    roles:
+      - "attending_physician"
+      - "care_coordinator"
+      - "discharge_planner"
+
+  what_they_can_do:
+    actions:
+      - "read-patient-record"
+      - "send-patient-data"
+      - "generate-clinical-summary"
+    data_types:
+      - "PHI"
+      - "clinical-notes"
+      - "lab-results"
+
+  under_what_conditions:
+    - patient_consent: required
+    - recipient_verified: required
+    - recipient_role: ["pcp", "specialist", "care_coordinator"]
+    - disclosure_format: "standard-clinical-summary"
+    - minimum_necessary: true  # HIPAA minimum necessary standard
+
+  valid_from: "2026-01-01T00:00:00Z"
+  valid_until: "2026-12-31T23:59:59Z"
+
+  trust_level_required: 2
+  audit_required: true
+  escalation_target: "compliance-officer@memorial.org"
+
+  notes: "Covers routine clinical disclosures between care team members. Does not cover psychotherapy notes, substance abuse records (42 CFR Part 2), or HIV status in restricted jurisdictions."

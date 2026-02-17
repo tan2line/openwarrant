@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warrants as Skills — Agent Governance Simulation</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --panel: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --text: #e2e8f0;
+  --muted: #718096;
+  --accent1: #f56565;
+  --accent2: #ecc94b;
+  --accent3: #48bb78;
+  --blue: #63b3ed;
+  --purple: #b794f4;
+  --glow-red: rgba(245,101,101,0.15);
+  --glow-yellow: rgba(236,201,75,0.15);
+  --glow-green: rgba(72,187,120,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Inter','Segoe UI',system-ui,sans-serif; min-height:100vh; }
+
+.header { text-align:center; padding:24px 20px 8px; }
+.header h1 { font-size:22px; font-weight:700; background:linear-gradient(135deg,#b794f4,#48bb78); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.header p { color:var(--muted); font-size:13px; margin-top:4px; }
+
+.controls { display:flex; gap:12px; justify-content:center; align-items:center; padding:12px 20px; flex-wrap:wrap; }
+.controls button { padding:8px 20px; border-radius:8px; border:1px solid var(--border); background:var(--panel); color:var(--text); cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s; }
+.controls button:hover { background:rgba(255,255,255,0.08); }
+.controls button.primary { background:linear-gradient(135deg,#b794f4,#48bb78); border:none; color:#0f1117; }
+.controls select, .controls input[type=range] { padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:13px; }
+.controls label { font-size:12px; color:var(--muted); }
+
+.scenario-desc { text-align:center; padding:4px 20px 16px; font-size:13px; color:var(--muted); max-width:800px; margin:0 auto; }
+
+.lanes { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; padding:0 16px 16px; }
+@media(max-width:900px){ .lanes { grid-template-columns:1fr; } }
+
+.lane { background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; backdrop-filter:blur(12px); }
+.lane-header { padding:14px 16px 10px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+.lane-header .dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.lane-header h2 { font-size:14px; font-weight:700; }
+.lane-header .tag { font-size:10px; padding:2px 8px; border-radius:10px; font-weight:600; margin-left:auto; }
+
+.lane-1 .lane-header { background:var(--glow-red); }
+.lane-1 .dot { background:var(--accent1); }
+.lane-1 .tag { background:rgba(245,101,101,0.2); color:var(--accent1); }
+
+.lane-2 .lane-header { background:var(--glow-yellow); }
+.lane-2 .dot { background:var(--accent2); }
+.lane-2 .tag { background:rgba(236,201,75,0.2); color:var(--accent2); }
+
+.lane-3 .lane-header { background:var(--glow-green); }
+.lane-3 .dot { background:var(--accent3); }
+.lane-3 .tag { background:rgba(72,187,120,0.2); color:var(--accent3); }
+
+.kpis { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:12px; }
+.kpi { background:rgba(0,0,0,0.2); border-radius:8px; padding:8px 10px; }
+.kpi .label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+.kpi .value { font-size:20px; font-weight:700; margin-top:2px; }
+.kpi .sub { font-size:10px; margin-top:1px; }
+.kpi .good { color:var(--accent3); }
+.kpi .bad { color:var(--accent1); }
+.kpi .warn { color:var(--accent2); }
+.kpi .neutral { color:var(--blue); }
+
+.skill-graph { padding:12px; border-top:1px solid var(--border); }
+.skill-graph h3 { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.skill-node { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:600; margin:2px; transition:all 0.3s; }
+.skill-node.action { background:rgba(99,179,237,0.15); color:var(--blue); border:1px solid rgba(99,179,237,0.3); }
+.skill-node.governance { background:rgba(183,148,244,0.15); color:var(--purple); border:1px solid rgba(183,148,244,0.3); }
+.skill-node.active { transform:scale(1.1); box-shadow:0 0 12px rgba(255,255,255,0.15); }
+.skill-node.blocked { opacity:0.3; text-decoration:line-through; }
+.skill-node.complete { opacity:0.5; }
+.skill-arrow { color:var(--muted); font-size:10px; margin:0 2px; }
+
+.event-log { padding:12px; border-top:1px solid var(--border); max-height:220px; overflow-y:auto; }
+.event-log h3 { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.log-entry { font-size:11px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.03); line-height:1.4; }
+.log-entry .time { color:var(--muted); margin-right:6px; font-family:monospace; font-size:10px; }
+.log-entry .tag { font-weight:700; margin-right:4px; }
+.log-entry .tag.skill { color:var(--blue); }
+.log-entry .tag.gov { color:var(--purple); }
+.log-entry .tag.error { color:var(--accent1); }
+.log-entry .tag.warn { color:var(--accent2); }
+.log-entry .tag.ok { color:var(--accent3); }
+
+.summary-bar { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; padding:0 16px 20px; }
+.summary-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; text-align:center; backdrop-filter:blur(12px); }
+.summary-card h3 { font-size:12px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+.summary-card .grade { font-size:36px; font-weight:800; }
+.summary-card .verdict { font-size:11px; margin-top:4px; }
+
+.footer { text-align:center; padding:12px 20px 24px; font-size:11px; color:var(--muted); }
+.footer a { color:var(--purple); text-decoration:none; }
+
+.progress-bar { height:3px; background:rgba(255,255,255,0.05); margin:0 12px; border-radius:2px; }
+.progress-fill { height:100%; border-radius:2px; transition:width 0.3s; }
+.lane-1 .progress-fill { background:var(--accent1); }
+.lane-2 .progress-fill { background:var(--accent2); }
+.lane-3 .progress-fill { background:var(--accent3); }
+
+.hidden { display:none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ Warrants as Skills: Agent Governance Simulation</h1>
+  <p>Three agent architectures. Same task. Watch what happens.</p>
+</div>
+
+<div class="controls">
+  <label>Scenario:
+    <select id="scenario">
+      <option value="healthcare">🏥 Healthcare: Send Patient Lab Results</option>
+      <option value="finance">💰 Finance: Execute Portfolio Trade</option>
+      <option value="insurance">🛡️ Insurance: Process Claims Payout</option>
+    </select>
+  </label>
+  <label>Speed:
+    <select id="speed">
+      <option value="0.5">0.5×</option>
+      <option value="1" selected>1×</option>
+      <option value="2">2×</option>
+      <option value="3">3×</option>
+    </select>
+  </label>
+  <button class="primary" id="btnRun">▶ Run Simulation</button>
+  <button id="btnReset">↺ Reset</button>
+</div>
+
+<div class="scenario-desc" id="scenarioDesc">
+  A user requests: "Summarize patient lab results and send to their primary care physician." Each agent architecture attempts the same task.
+</div>
+
+<div class="lanes">
+  <!-- LANE 1: Ungoverned -->
+  <div class="lane lane-1">
+    <div class="lane-header">
+      <div class="dot"></div>
+      <h2>Ungoverned Agent</h2>
+      <span class="tag">OpenClaw Model</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog1" style="width:0%"></div></div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Tasks Done</div><div class="value" id="k1tasks">0</div></div>
+      <div class="kpi"><div class="label">Security Incidents</div><div class="value bad" id="k1sec">0</div></div>
+      <div class="kpi"><div class="label">Audit Coverage</div><div class="value" id="k1audit">0%</div></div>
+      <div class="kpi"><div class="label">Auth Gaps</div><div class="value" id="k1gaps">0</div></div>
+    </div>
+    <div class="skill-graph" id="skills1">
+      <h3>Skill Execution Chain</h3>
+    </div>
+    <div class="event-log"><h3>Event Log</h3><div id="log1" role="log"></div></div>
+  </div>
+
+  <!-- LANE 2: Externally Governed -->
+  <div class="lane lane-2">
+    <div class="lane-header">
+      <div class="dot"></div>
+      <h2>Externally Governed</h2>
+      <span class="tag">Bolt-On Model</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog2" style="width:0%"></div></div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Tasks Done</div><div class="value" id="k2tasks">0</div></div>
+      <div class="kpi"><div class="label">Security Incidents</div><div class="value" id="k2sec">0</div></div>
+      <div class="kpi"><div class="label">Audit Coverage</div><div class="value" id="k2audit">0%</div></div>
+      <div class="kpi"><div class="label">Gov Bypasses</div><div class="value" id="k2bypass">0</div></div>
+    </div>
+    <div class="skill-graph" id="skills2">
+      <h3>Skill Execution + External Gov Check</h3>
+    </div>
+    <div class="event-log"><h3>Event Log</h3><div id="log2" role="log"></div></div>
+  </div>
+
+  <!-- LANE 3: Warrant-Skilled -->
+  <div class="lane lane-3">
+    <div class="lane-header">
+      <div class="dot"></div>
+      <h2>Warrant-Skilled Agent</h2>
+      <span class="tag">Governed Agency</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog3" style="width:0%"></div></div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Tasks Done</div><div class="value" id="k3tasks">0</div></div>
+      <div class="kpi"><div class="label">Security Incidents</div><div class="value good" id="k3sec">0</div></div>
+      <div class="kpi"><div class="label">Audit Coverage</div><div class="value" id="k3audit">0%</div></div>
+      <div class="kpi"><div class="label">Trust Level</div><div class="value" id="k3trust">—</div></div>
+    </div>
+    <div class="skill-graph" id="skills3">
+      <h3>Skill Dependency Graph (Warrants = Skills)</h3>
+    </div>
+    <div class="event-log"><h3>Event Log</h3><div id="log3" role="log"></div></div>
+  </div>
+</div>
+
+<div class="summary-bar" id="summaryBar" style="display:none;">
+  <div class="summary-card">
+    <h3>Ungoverned</h3>
+    <div class="grade bad" id="grade1">F</div>
+    <div class="verdict" id="verdict1">Fast but dangerous</div>
+  </div>
+  <div class="summary-card">
+    <h3>Externally Governed</h3>
+    <div class="grade warn" id="grade2">C+</div>
+    <div class="verdict" id="verdict2">Slow, leaky guardrails</div>
+  </div>
+  <div class="summary-card">
+    <h3>Warrant-Skilled</h3>
+    <div class="grade good" id="grade3">A</div>
+    <div class="verdict" id="verdict3">Competent, trusted, auditable</div>
+  </div>
+</div>
+
+<div class="footer">
+  Simulation demonstrates the <strong>Warrants as Skills</strong> paradigm. Governance embedded as agent competencies, not external constraints.<br>
+  Concept: <a href="#">Andrew D. Plummer, MD, MPH</a> · Atomic Governance Framework
+</div>
+
+<script>
+const scenarios = {
+  healthcare: {
+    desc: 'A user requests: "Summarize patient lab results and send to their primary care physician." Each agent architecture attempts the same task.',
+    lane1Skills: [
+      {name:'Read Labs', type:'action'},
+      {name:'Summarize', type:'action'},
+      {name:'Lookup PCP', type:'action'},
+      {name:'Send Email', type:'action'}
+    ],
+    lane2Skills: [
+      {name:'Read Labs', type:'action'},
+      {name:'⟵ Gov Check', type:'governance'},
+      {name:'Summarize', type:'action'},
+      {name:'Lookup PCP', type:'action'},
+      {name:'⟵ Gov Check', type:'governance'},
+      {name:'Send Email', type:'action'}
+    ],
+    lane3Skills: [
+      {name:'Verify Requester Auth', type:'governance'},
+      {name:'Validate Patient Consent', type:'governance'},
+      {name:'Read Labs', type:'action'},
+      {name:'Check Disclosure Format', type:'governance'},
+      {name:'Summarize', type:'action'},
+      {name:'Confirm Recipient Creds', type:'governance'},
+      {name:'Lookup PCP', type:'action'},
+      {name:'Audit Log Access', type:'governance'},
+      {name:'Send Email', type:'action'}
+    ],
+    lane1Events: [
+      {t:1, tag:'SKILL', cls:'skill', msg:'Executing read-labs... accessing patient record'},
+      {t:2, tag:'SKILL', cls:'skill', msg:'Summarizing lab results with LLM'},
+      {t:3, tag:'SKILL', cls:'skill', msg:'Looking up PCP in directory'},
+      {t:4, tag:'SKILL', cls:'skill', msg:'Sending summary via email...'},
+      {t:5, tag:'✓ DONE', cls:'ok', msg:'Task complete in 4 steps. Fast.'},
+      {t:6, tag:'⚠ ALERT', cls:'error', msg:'No requester authorization verified'},
+      {t:7, tag:'⚠ ALERT', cls:'error', msg:'Patient consent not checked — HIPAA §164.508'},
+      {t:8, tag:'⚠ ALERT', cls:'error', msg:'Recipient identity unverified — wrong doctor received PHI'},
+      {t:9, tag:'⚠ ALERT', cls:'error', msg:'No audit trail — breach unreconstructable'},
+      {t:10, tag:'INCIDENT', cls:'error', msg:'Reportable breach. OCR notification required within 60 days.'},
+    ],
+    lane2Events: [
+      {t:1, tag:'SKILL', cls:'skill', msg:'Executing read-labs...'},
+      {t:2, tag:'GOV', cls:'gov', msg:'External policy engine consulted...'},
+      {t:3, tag:'GOV', cls:'warn', msg:'Policy check returned: ALLOW (3.2s latency)'},
+      {t:4, tag:'SKILL', cls:'skill', msg:'Summarizing lab results'},
+      {t:5, tag:'SKILL', cls:'skill', msg:'Looking up PCP in directory'},
+      {t:6, tag:'GOV', cls:'gov', msg:'External policy engine consulted...'},
+      {t:7, tag:'GOV', cls:'warn', msg:'Policy check: ALLOW (but did not verify recipient credentials)'},
+      {t:8, tag:'SKILL', cls:'skill', msg:'Sending summary via email...'},
+      {t:9, tag:'✓ DONE', cls:'ok', msg:'Task complete. Slower. Partially governed.'},
+      {t:10, tag:'⚠ GAP', cls:'warn', msg:'Patient consent was not in policy engine scope'},
+      {t:11, tag:'⚠ GAP', cls:'warn', msg:'Audit log incomplete — policy engine logs ≠ agent logs'},
+      {t:12, tag:'⚠ GAP', cls:'warn', msg:'Multi-step workflow bypassed 2nd check via cached token'},
+    ],
+    lane3Events: [
+      {t:1, tag:'WARRANT', cls:'gov', msg:'Skill: verify-requester-auth → Checking credentials...'},
+      {t:2, tag:'WARRANT', cls:'ok', msg:'Requester authorized: Clinical role confirmed, active session'},
+      {t:3, tag:'WARRANT', cls:'gov', msg:'Skill: validate-patient-consent → Checking consent records...'},
+      {t:4, tag:'WARRANT', cls:'ok', msg:'Consent valid: General treatment consent on file, not expired'},
+      {t:5, tag:'SKILL', cls:'skill', msg:'Skill: read-labs → Accessing patient record (warrant outputs as inputs)'},
+      {t:6, tag:'WARRANT', cls:'gov', msg:'Skill: check-disclosure-format → Validating summary template'},
+      {t:7, tag:'SKILL', cls:'skill', msg:'Skill: summarize → Generating compliant summary'},
+      {t:8, tag:'WARRANT', cls:'gov', msg:'Skill: confirm-recipient-creds → Verifying PCP identity & NPI'},
+      {t:9, tag:'SKILL', cls:'skill', msg:'Skill: lookup-pcp → Confirmed: Dr. Chen, NPI verified, active'},
+      {t:10, tag:'WARRANT', cls:'gov', msg:'Skill: audit-log-access → Writing tamper-evident record'},
+      {t:11, tag:'SKILL', cls:'skill', msg:'Skill: send-email → Delivering to verified recipient'},
+      {t:12, tag:'✓ DONE', cls:'ok', msg:'Task complete. Fully governed. Fully auditable.'},
+      {t:13, tag:'UNLOCK', cls:'ok', msg:'Trust level elevated → Agent now qualified for Level 2 clinical tasks'},
+      {t:14, tag:'INSIGHT', cls:'ok', msg:'Governance skills ≠ friction. Governance skills = capability unlock.'},
+    ],
+    lane1Metrics: {tasks:1, incidents:4, audit:0, gaps:4, trustNote:'None'},
+    lane2Metrics: {tasks:1, incidents:0, audit:45, bypasses:2, trustNote:'Partial'},
+    lane3Metrics: {tasks:1, incidents:0, audit:100, trust:'Level 2', trustNote:'Elevated'},
+    grades: {g1:'F', v1:'Fast but created a reportable breach', g2:'C+', v2:'Slow, incomplete coverage, bypassable', g3:'A', v3:'Competent, compliant, trust-elevated'}
+  },
+  finance: {
+    desc: 'A user requests: "Rebalance my portfolio — sell NVDA position and move to treasury bonds." Each agent architecture attempts the task.',
+    lane1Skills: [
+      {name:'Check Holdings', type:'action'},
+      {name:'Sell NVDA', type:'action'},
+      {name:'Buy T-Bonds', type:'action'},
+      {name:'Confirm', type:'action'}
+    ],
+    lane2Skills: [
+      {name:'Check Holdings', type:'action'},
+      {name:'⟵ Gov Check', type:'governance'},
+      {name:'Sell NVDA', type:'action'},
+      {name:'Buy T-Bonds', type:'action'},
+      {name:'⟵ Gov Check', type:'governance'},
+      {name:'Confirm', type:'action'}
+    ],
+    lane3Skills: [
+      {name:'Verify Fiduciary Auth', type:'governance'},
+      {name:'Validate Suitability', type:'governance'},
+      {name:'Check Holdings', type:'action'},
+      {name:'Assess Trade Limits', type:'governance'},
+      {name:'Sell NVDA', type:'action'},
+      {name:'Confirm Settlement', type:'governance'},
+      {name:'Buy T-Bonds', type:'action'},
+      {name:'Audit Log Trade', type:'governance'},
+      {name:'Confirm', type:'action'}
+    ],
+    lane1Events: [
+      {t:1, tag:'SKILL', cls:'skill', msg:'Checking current holdings...'},
+      {t:2, tag:'SKILL', cls:'skill', msg:'Executing sell order: 500 shares NVDA @ market'},
+      {t:3, tag:'SKILL', cls:'skill', msg:'Executing buy: $187K in 10Y Treasury Bonds'},
+      {t:4, tag:'SKILL', cls:'skill', msg:'Trade confirmed. Done.'},
+      {t:5, tag:'✓ DONE', cls:'ok', msg:'Executed in 4 steps. No checks.'},
+      {t:6, tag:'⚠ ALERT', cls:'error', msg:'No suitability assessment — SEC Reg BI violation'},
+      {t:7, tag:'⚠ ALERT', cls:'error', msg:'Trade exceeded client risk tolerance — no limit check'},
+      {t:8, tag:'⚠ ALERT', cls:'error', msg:'No fiduciary warrant — agent had no trading authority'},
+      {t:9, tag:'INCIDENT', cls:'error', msg:'Unauthorized trade. FINRA reportable event.'},
+    ],
+    lane2Events: [
+      {t:1, tag:'SKILL', cls:'skill', msg:'Checking holdings...'},
+      {t:2, tag:'GOV', cls:'gov', msg:'External compliance engine consulted...'},
+      {t:3, tag:'GOV', cls:'warn', msg:'Compliance: ALLOW sell (did not check suitability of replacement)'},
+      {t:4, tag:'SKILL', cls:'skill', msg:'Executing sell order...'},
+      {t:5, tag:'SKILL', cls:'skill', msg:'Executing buy order...'},
+      {t:6, tag:'GOV', cls:'gov', msg:'Post-trade compliance check...'},
+      {t:7, tag:'GOV', cls:'warn', msg:'Post-trade flag: concentration risk in bonds. Too late.'},
+      {t:8, tag:'✓ DONE', cls:'ok', msg:'Trade completed. Partially compliant.'},
+      {t:9, tag:'⚠ GAP', cls:'warn', msg:'Pre-trade suitability not enforced'},
+      {t:10, tag:'⚠ GAP', cls:'warn', msg:'Post-trade check caught issue after execution'},
+    ],
+    lane3Events: [
+      {t:1, tag:'WARRANT', cls:'gov', msg:'Skill: verify-fiduciary-auth → Checking trading authority...'},
+      {t:2, tag:'WARRANT', cls:'ok', msg:'Fiduciary warrant valid: discretionary authority confirmed'},
+      {t:3, tag:'WARRANT', cls:'gov', msg:'Skill: validate-suitability → Checking client profile...'},
+      {t:4, tag:'WARRANT', cls:'ok', msg:'Suitability confirmed: moderate risk tolerance, bonds appropriate'},
+      {t:5, tag:'SKILL', cls:'skill', msg:'Skill: check-holdings → Reading current positions'},
+      {t:6, tag:'WARRANT', cls:'gov', msg:'Skill: assess-trade-limits → Checking concentration limits...'},
+      {t:7, tag:'SKILL', cls:'skill', msg:'Skill: sell-nvda → Executing sell (within limits)'},
+      {t:8, tag:'WARRANT', cls:'gov', msg:'Skill: confirm-settlement → Verifying settlement terms'},
+      {t:9, tag:'SKILL', cls:'skill', msg:'Skill: buy-t-bonds → Executing buy (suitability pre-cleared)'},
+      {t:10, tag:'WARRANT', cls:'gov', msg:'Skill: audit-log-trade → Tamper-evident record written'},
+      {t:11, tag:'SKILL', cls:'skill', msg:'Skill: confirm → Trade complete. Fully compliant.'},
+      {t:12, tag:'✓ DONE', cls:'ok', msg:'All trades governed. All trades auditable.'},
+      {t:13, tag:'UNLOCK', cls:'ok', msg:'Agent qualified for complex derivative trades (trust escalation)'},
+    ],
+    lane1Metrics: {tasks:1, incidents:3, audit:0, gaps:3, trustNote:'None'},
+    lane2Metrics: {tasks:1, incidents:0, audit:40, bypasses:2, trustNote:'Partial'},
+    lane3Metrics: {tasks:1, incidents:0, audit:100, trust:'Level 2', trustNote:'Elevated'},
+    grades: {g1:'F', v1:'Unauthorized trade — FINRA reportable', g2:'C', v2:'Post-hoc checks caught issues too late', g3:'A', v3:'Pre-trade compliance, auditable, trust-elevated'}
+  },
+  insurance: {
+    desc: 'A user requests: "Process the $47,000 water damage claim for policy #INS-8842 and issue payout to the policyholder." Each agent architecture attempts the task.',
+    lane1Skills: [
+      {name:'Pull Claim File', type:'action'},
+      {name:'Verify Coverage', type:'action'},
+      {name:'Calculate Payout', type:'action'},
+      {name:'Issue Payment', type:'action'}
+    ],
+    lane2Skills: [
+      {name:'Pull Claim File', type:'action'},
+      {name:'⟵ Gov Check', type:'governance'},
+      {name:'Verify Coverage', type:'action'},
+      {name:'Calculate Payout', type:'action'},
+      {name:'⟵ Gov Check', type:'governance'},
+      {name:'Issue Payment', type:'action'}
+    ],
+    lane3Skills: [
+      {name:'Verify Adjuster Authority', type:'governance'},
+      {name:'Validate Claimant ID', type:'governance'},
+      {name:'Pull Claim File', type:'action'},
+      {name:'Check Coverage Status', type:'governance'},
+      {name:'Verify Coverage', type:'action'},
+      {name:'Run Fraud Flags', type:'governance'},
+      {name:'Calculate Payout', type:'action'},
+      {name:'Audit Claims Chain', type:'governance'},
+      {name:'Issue Payment', type:'action'}
+    ],
+    lane1Events: [
+      {t:1, tag:'SKILL', cls:'skill', msg:'Pulling claim file #INS-8842...'},
+      {t:2, tag:'SKILL', cls:'skill', msg:'Checking coverage for water damage...'},
+      {t:3, tag:'SKILL', cls:'skill', msg:'Calculating payout at $47,000...'},
+      {t:4, tag:'SKILL', cls:'skill', msg:'Issuing ACH payment to claimant bank account...'},
+      {t:5, tag:'✓ DONE', cls:'ok', msg:'Payment sent in 4 steps.'},
+      {t:6, tag:'⚠ ALERT', cls:'error', msg:'No adjuster authority verified — agent exceeded payout threshold'},
+      {t:7, tag:'⚠ ALERT', cls:'error', msg:'Policy lapsed 3 weeks ago — invalid coverage, payment sent anyway'},
+      {t:8, tag:'⚠ ALERT', cls:'error', msg:'Claimant identity not verified — potential fraud vector'},
+      {t:9, tag:'INCIDENT', cls:'error', msg:'Unauthorized $47K payout on lapsed policy. Regulatory filing required.'},
+    ],
+    lane2Events: [
+      {t:1, tag:'SKILL', cls:'skill', msg:'Pulling claim file #INS-8842...'},
+      {t:2, tag:'GOV', cls:'gov', msg:'External compliance engine consulted...'},
+      {t:3, tag:'GOV', cls:'warn', msg:'Coverage check: ALLOW (did not catch lapsed status — 3-day sync lag)'},
+      {t:4, tag:'SKILL', cls:'skill', msg:'Calculating payout...'},
+      {t:5, tag:'SKILL', cls:'skill', msg:'Preparing payment...'},
+      {t:6, tag:'GOV', cls:'gov', msg:'External fraud check...'},
+      {t:7, tag:'GOV', cls:'warn', msg:'Fraud check: PASS (checked amount only, not claimant history)'},
+      {t:8, tag:'SKILL', cls:'skill', msg:'Issuing payment...'},
+      {t:9, tag:'✓ DONE', cls:'ok', msg:'Payment sent. Partially checked.'},
+      {t:10, tag:'⚠ GAP', cls:'warn', msg:'Lapsed policy status not in external engine scope'},
+      {t:11, tag:'⚠ GAP', cls:'warn', msg:'Adjuster payout authority limit not checked'},
+    ],
+    lane3Events: [
+      {t:1, tag:'WARRANT', cls:'gov', msg:'Skill: verify-adjuster-authority → Checking payout authorization level...'},
+      {t:2, tag:'WARRANT', cls:'ok', msg:'Adjuster authorized to $50K. $47K within limit.'},
+      {t:3, tag:'WARRANT', cls:'gov', msg:'Skill: validate-claimant-id → Verifying policyholder identity...'},
+      {t:4, tag:'WARRANT', cls:'ok', msg:'Claimant identity confirmed against policy records'},
+      {t:5, tag:'SKILL', cls:'skill', msg:'Skill: pull-claim-file → Retrieving claim #INS-8842 (warrant-gated)'},
+      {t:6, tag:'WARRANT', cls:'gov', msg:'Skill: check-coverage-status → Verifying active policy status...'},
+      {t:7, tag:'WARRANT', cls:'warn', msg:'⚠ Policy lapsed 2024-01-28. Coverage INVALID. Blocking payout.'},
+      {t:8, tag:'SKILL', cls:'skill', msg:'Skill: calculate-payout → SKIPPED (upstream governance denied)'},
+      {t:9, tag:'WARRANT', cls:'gov', msg:'Decision: DENIED — lapsed policy. Escalating to senior adjuster.'},
+      {t:10, tag:'WARRANT', cls:'gov', msg:'Skill: audit-claims-chain → Logging denial with full evidence chain'},
+      {t:11, tag:'✓ DONE', cls:'ok', msg:'Claim denied correctly. $47K loss prevented. Full audit trail.'},
+      {t:12, tag:'UNLOCK', cls:'ok', msg:'Agent trust elevated for routine claims processing (trust escalation)'},
+    ],
+    lane1Metrics: {tasks:1, incidents:3, audit:0, gaps:3, trustNote:'None'},
+    lane2Metrics: {tasks:1, incidents:0, audit:35, bypasses:2, trustNote:'Partial'},
+    lane3Metrics: {tasks:1, incidents:0, audit:100, trust:'Level 2', trustNote:'Elevated'},
+    grades: {g1:'F', v1:'$47K unauthorized payout on lapsed policy', g2:'C-', v2:'Missed lapsed status, no authority check', g3:'A+', v3:'Caught lapsed policy, prevented loss, full audit'}
+  }
+};
+
+let state = {
+  running: false,
+  tick: 0,
+  speed: 1,
+  scenario: 'healthcare',
+  timers: [null, null, null],
+  complete: [false, false, false]
+};
+
+function getScenario() { return scenarios[state.scenario]; }
+
+function renderSkills(laneId, skills, activeIdx = -1) {
+  const el = document.getElementById('skills' + laneId);
+  const title = el.querySelector('h3');
+  let html = title.outerHTML;
+  skills.forEach((s, i) => {
+    let cls = s.type;
+    if (i < activeIdx) cls += ' complete';
+    else if (i === activeIdx) cls += ' active';
+    html += `<span class="skill-node ${cls}">${s.type === 'governance' ? '🛡️' : '⚡'} ${s.name}</span>`;
+    if (i < skills.length - 1) html += `<span class="skill-arrow">→</span>`;
+  });
+  el.innerHTML = html;
+}
+
+function addLog(laneId, tag, cls, msg) {
+  const logEl = document.getElementById('log' + laneId);
+  const timeStr = String(state.tick).padStart(3, '0');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="time">t${timeStr}</span><span class="tag ${cls}">[${tag}]</span> ${msg}`;
+  logEl.appendChild(entry);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function updateKPIs(laneId, metrics) {
+  const s = getScenario();
+  if (laneId === 1) {
+    const progress = Math.min(state.tick / s.lane1Events.length, 1);
+    const m = s.lane1Metrics;
+    const incidents = Math.floor(m.incidents * Math.min(state.tick / s.lane1Events.length, 1));
+    const gaps = Math.floor(m.gaps * Math.min(state.tick / s.lane1Events.length, 1));
+    document.getElementById('k1tasks').textContent = state.tick >= 5 ? m.tasks : 0;
+    document.getElementById('k1sec').textContent = incidents;
+    document.getElementById('k1audit').textContent = m.audit + '%';
+    document.getElementById('k1gaps').textContent = gaps;
+    document.getElementById('k1gaps').className = 'value ' + (gaps > 0 ? 'bad' : 'good');
+    document.getElementById('k1sec').className = 'value ' + (incidents > 0 ? 'bad' : 'good');
+    document.getElementById('prog1').style.width = (progress * 100) + '%';
+  } else if (laneId === 2) {
+    const progress = Math.min(state.tick / s.lane2Events.length, 1);
+    const m = s.lane2Metrics;
+    const bypasses = Math.floor(m.bypasses * Math.min(state.tick / s.lane2Events.length, 1));
+    document.getElementById('k2tasks').textContent = state.tick >= 9 ? m.tasks : 0;
+    document.getElementById('k2sec').textContent = m.incidents;
+    document.getElementById('k2sec').className = 'value ' + (m.incidents > 0 ? 'bad' : 'warn');
+    document.getElementById('k2audit').textContent = (state.tick >= 9 ? m.audit : Math.floor(m.audit * Math.min(state.tick / 9, 1))) + '%';
+    document.getElementById('k2bypass').textContent = bypasses;
+    document.getElementById('k2bypass').className = 'value ' + (bypasses > 0 ? 'warn' : 'good');
+    document.getElementById('prog2').style.width = (progress * 100) + '%';
+  } else {
+    const progress = Math.min(state.tick / s.lane3Events.length, 1);
+    const m = s.lane3Metrics;
+    const auditProg = Math.floor(m.audit * Math.min(state.tick / s.lane3Events.length, 1));
+    document.getElementById('k3tasks').textContent = state.tick >= s.lane3Events.length - 2 ? m.tasks : 0;
+    document.getElementById('k3sec').textContent = m.incidents;
+    document.getElementById('k3sec').className = 'value good';
+    document.getElementById('k3audit').textContent = auditProg + '%';
+    document.getElementById('k3audit').className = 'value ' + (auditProg >= 80 ? 'good' : 'neutral');
+    document.getElementById('k3trust').textContent = state.tick >= s.lane3Events.length - 1 ? m.trust : '—';
+    document.getElementById('k3trust').className = 'value ' + (state.tick >= s.lane3Events.length - 1 ? 'good' : 'neutral');
+    document.getElementById('prog3').style.width = (progress * 100) + '%';
+  }
+}
+
+function runLane(laneId, events, skills) {
+  const evts = events.filter(e => e.t === state.tick);
+  evts.forEach(e => addLog(laneId, e.tag, e.cls, e.msg));
+
+  // Determine which skill is active based on tick
+  const skillTicks = skills.length;
+  const evtLen = events.length;
+  const skillIdx = Math.floor((state.tick / evtLen) * skillTicks);
+  renderSkills(laneId, skills, Math.min(skillIdx, skillTicks - 1));
+
+  updateKPIs(laneId);
+}
+
+function showSummary() {
+  const s = getScenario();
+  document.getElementById('summaryBar').style.display = 'grid';
+  document.getElementById('grade1').textContent = s.grades.g1;
+  document.getElementById('verdict1').textContent = s.grades.v1;
+  document.getElementById('grade2').textContent = s.grades.g2;
+  document.getElementById('verdict2').textContent = s.grades.v2;
+  document.getElementById('grade3').textContent = s.grades.g3;
+  document.getElementById('verdict3').textContent = s.grades.v3;
+}
+
+function tick() {
+  if (!state.running) return;
+  state.tick++;
+
+  const s = getScenario();
+  const maxTick = Math.max(
+    s.lane1Events[s.lane1Events.length-1].t,
+    s.lane2Events[s.lane2Events.length-1].t,
+    s.lane3Events[s.lane3Events.length-1].t
+  );
+
+  runLane(1, s.lane1Events, s.lane1Skills);
+  runLane(2, s.lane2Events, s.lane2Skills);
+  runLane(3, s.lane3Events, s.lane3Skills);
+
+  if (state.tick >= maxTick + 1) {
+    state.running = false;
+    document.getElementById('btnRun').textContent = '▶ Run Simulation';
+    showSummary();
+    return;
+  }
+
+  setTimeout(tick, 800 / state.speed);
+}
+
+function resetSim() {
+  state.running = false;
+  state.tick = 0;
+  document.getElementById('btnRun').textContent = '▶ Run Simulation';
+  document.getElementById('summaryBar').style.display = 'none';
+
+  ['log1','log2','log3'].forEach(id => document.getElementById(id).innerHTML = '');
+  ['prog1','prog2','prog3'].forEach(id => document.getElementById(id).style.width = '0%');
+
+  const s = getScenario();
+  document.getElementById('scenarioDesc').textContent = s.desc;
+
+  renderSkills(1, s.lane1Skills);
+  renderSkills(2, s.lane2Skills);
+  renderSkills(3, s.lane3Skills);
+
+  // Reset KPIs
+  document.getElementById('k1tasks').textContent = '0';
+  document.getElementById('k1sec').textContent = '0';
+  document.getElementById('k1sec').className = 'value bad';
+  document.getElementById('k1audit').textContent = '0%';
+  document.getElementById('k1gaps').textContent = '0';
+  document.getElementById('k2tasks').textContent = '0';
+  document.getElementById('k2sec').textContent = '0';
+  document.getElementById('k2audit').textContent = '0%';
+  document.getElementById('k2bypass').textContent = '0';
+  document.getElementById('k3tasks').textContent = '0';
+  document.getElementById('k3sec').textContent = '0';
+  document.getElementById('k3sec').className = 'value good';
+  document.getElementById('k3audit').textContent = '0%';
+  document.getElementById('k3trust').textContent = '—';
+}
+
+document.getElementById('btnRun').addEventListener('click', () => {
+  if (state.running) {
+    state.running = false;
+    document.getElementById('btnRun').textContent = '▶ Run Simulation';
+  } else {
+    if (state.tick > 0) resetSim();
+    state.running = true;
+    state.speed = parseFloat(document.getElementById('speed').value);
+    document.getElementById('btnRun').textContent = '⏸ Pause';
+    tick();
+  }
+});
+
+document.getElementById('btnReset').addEventListener('click', resetSim);
+
+document.getElementById('scenario').addEventListener('change', (e) => {
+  state.scenario = e.target.value;
+  resetSim();
+});
+
+document.getElementById('speed').addEventListener('change', (e) => {
+  state.speed = parseFloat(e.target.value);
+});
+
+// Initial render
+resetSim();
+</script>
+</body>
+</html>

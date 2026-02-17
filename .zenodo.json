@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "title": "OpenWarrant: A Runtime-Agnostic Governance Library for AI Agents — Specification v0.1",
+    "upload_type": "software",
+    "description": "<p><strong>OpenWarrant</strong> is an open-source, runtime-agnostic governance library that enables AI agents to prove they had authority to act. Rather than treating governance as an external constraint on agent capabilities, OpenWarrant implements governance as native agent skills — warrant-skills that are upstream dependencies in the agent's execution graph, externally authored but internally executed.</p><p><strong>Core Thesis:</strong> The agent that can prove it should be trusted will eat the agent that can't. Governance is not a constraint on what agents can do — it is a skill that makes agents more capable.</p><p><strong>This deposit contains:</strong></p><ul><li>Architecture specification (v0.1)</li><li>Warrant schema specification (YAML format with Ed25519 signatures)</li><li>Skill Governance Registry specification</li><li>Interactive simulation artifact demonstrating three governance architectures across healthcare, finance, and insurance scenarios</li><li>Conceptual framework: Warrants-as-Skills paradigm</li></ul><p><strong>Key Innovation:</strong> The warrants-as-skills paradigm treats authorization checks, credential verification, consent validation, and audit logging as agent competencies rather than restrictions. Governance skills are upstream dependencies in the execution graph — action skills cannot execute until their governance prerequisites produce valid outputs. Warrants are externally authored and cryptographically signed by institutional authorities; agents execute warrants but never author them.</p><p><strong>Design Principles:</strong> Zero runtime dependencies (works with any agent framework via optional adapters), local-first execution (no cloud dependency), tamper-evident audit chains (SHA-256 hash-linked records), and progressive trust escalation (agents earn access to sensitive tasks through demonstrated governed behavior).</p><p>This is a specification preprint. The reference implementation is under active development at the associated GitHub repository.</p>",
+    "creators": [
+      {
+        "name": "Plummer, Andrew D.",
+        "affiliation": "Independent Researcher",
+        "orcid": ""
+      }
+    ],
+    "keywords": [
+      "AI governance",
+      "agent governance",
+      "AI safety",
+      "warrant-based authorization",
+      "responsible AI",
+      "healthcare AI",
+      "financial AI",
+      "insurance AI",
+      "open source",
+      "agent framework",
+      "runtime-agnostic",
+      "audit trail",
+      "trust escalation",
+      "governed agents",
+      "warrants-as-skills"
+    ],
+    "license": "Apache-2.0",
+    "version": "0.1.0",
+    "language": "eng",
+    "access_right": "open",
+    "related_identifiers": [
+      {
+        "identifier": "",
+        "relation": "isSupplementTo",
+        "resource_type": "software",
+        "scheme": "url"
+      }
+    ],
+    "notes": "GitHub repository URL and Substack article URL to be added upon publication. ORCID to be added if available.",
+    "subjects": [
+      {"term": "Artificial Intelligence", "scheme": "url", "identifier": "https://id.loc.gov/authorities/subjects/sh85008180"},
+      {"term": "Computer security", "scheme": "url", "identifier": "https://id.loc.gov/authorities/subjects/sh90001862"}
+    ]
+  }
+}

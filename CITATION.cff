@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software or reference this specification, please cite it as below."
+type: software
+title: "OpenWarrant: A Runtime-Agnostic Governance Library for AI Agents"
+version: 0.1.0
+date-released: 2026-02-16
+license: Apache-2.0
+url: "https://github.com/[TBD]/openwarrant"
+repository-code: "https://github.com/[TBD]/openwarrant"
+abstract: >-
+  OpenWarrant is an open-source, runtime-agnostic governance library that
+  enables AI agents to prove they had authority to act. It introduces the
+  warrants-as-skills paradigm, where governance checks are implemented as
+  native agent skills — upstream dependencies in the execution graph that
+  are externally authored, cryptographically signed, and institutionally
+  issued. The library has zero framework dependencies and works with any
+  agent runtime through optional thin adapters.
+keywords:
+  - AI governance
+  - agent governance
+  - warrant-based authorization
+  - responsible AI
+  - healthcare AI
+  - runtime-agnostic
+  - trust escalation
+  - warrants-as-skills
+authors:
+  - family-names: Plummer
+    given-names: Andrew D.
+    affiliation: Independent Researcher

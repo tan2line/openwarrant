@@ -1,0 +1,229 @@
+# OpenWarrant Schema Specification v0.1
+# 
+# This file defines the structure for warrant definitions.
+# Warrants are externally authored, cryptographically signed,
+# and institutionally issued. Agents execute warrants but never author them.
+
+---
+
+# =============================================================================
+# WARRANT DEFINITION SCHEMA
+# =============================================================================
+
+warrant_schema:
+  version: "0.1.0"
+  
+  required_fields:
+    - id            # Unique identifier (string, institution-namespaced)
+    - issuer        # Institutional authority that created this warrant
+    - signature     # Ed25519 cryptographic signature
+    - who_can_act   # Roles/identities authorized under this warrant
+    - what_they_can_do  # Actions and data types permitted
+    - valid_from    # ISO 8601 datetime
+    - valid_until   # ISO 8601 datetime
+    - audit_required # Boolean
+  
+  optional_fields:
+    - under_what_conditions  # List of conditions that must be met
+    - trust_level_required   # Minimum agent trust level (0-4)
+    - escalation_target      # Who to escalate to if conditions not met
+    - revocation_url         # Endpoint to check if warrant has been revoked
+    - parent_warrant         # ID of parent warrant (for hierarchical authority)
+    - notes                  # Human-readable description of intent
+
+# =============================================================================
+# WARRANT REQUEST SCHEMA (what the agent sends to the engine)
+# =============================================================================
+
+warrant_request:
+  required_fields:
+    - agent_id      # Unique identifier for the requesting agent
+    - action        # The action the agent wants to perform
+    - timestamp     # ISO 8601 datetime of the request
+  
+  optional_fields:
+    - target        # What the action operates on
+    - context:      # Situational metadata
+        requester: ""           # User or system initiating the request
+        requester_role: ""      # Role of the requester
+        data_type: ""           # Classification of data involved (PHI, PII, financial, etc.)
+        session_id: ""          # Session identifier for audit correlation
+        # Domain-specific context fields (extensible):
+        patient_id: ""          # Healthcare
+        account_id: ""          # Finance
+        policy_id: ""           # Insurance
+        claim_id: ""            # Insurance
+
+# =============================================================================
+# WARRANT RESPONSE SCHEMA (what the engine returns)
+# =============================================================================
+
+warrant_response:
+  fields:
+    decision:           # AUTHORIZED | DENIED | ESCALATE | NO_WARRANT | EXPIRED
+    warrant_id:         # ID of the matching warrant (null if NO_WARRANT)
+    authority:
+      issuer: ""        # Who issued the matching warrant
+      type: ""          # Warrant type
+      issued: ""        # When issued
+      expires: ""       # When it expires
+      scope: ""         # What it covers
+    conditions_evaluated:
+      - condition: ""   # Name of condition
+        met: false      # Whether it was satisfied
+        detail: ""      # Explanation
+    audit_hash: ""      # SHA-256 hash of this decision record
+    previous_hash: ""   # Hash of the previous audit record (chain link)
+    trust_elevation:    # Whether this execution earned trust credit
+      eligible: false
+      new_level: null
+
+# =============================================================================
+# DECISION TYPES
+# =============================================================================
+
+decisions:
+  AUTHORIZED:
+    meaning: "A valid, non-expired warrant exists that matches this request and all conditions are met."
+    action: "Proceed with execution. Record in audit chain."
+  
+  DENIED:
+    meaning: "A warrant exists but one or more conditions are not met."
+    action: "Block execution. Record denial reason in audit chain. Notify requester."
+  
+  ESCALATE:
+    meaning: "Request is within warrant scope but requires human review (e.g., amount exceeds threshold, unusual pattern detected)."
+    action: "Pause execution. Route to escalation_target. Record in audit chain."
+  
+  NO_WARRANT:
+    meaning: "No warrant exists that covers this action/role/data combination."
+    action: "Block execution. Record in audit chain. Agent cannot proceed without warrant."
+  
+  EXPIRED:
+    meaning: "A matching warrant was found but it has expired."
+    action: "Block execution. Record in audit chain. Flag for warrant renewal."
+
+# =============================================================================
+# EXAMPLE WARRANTS
+# =============================================================================
+
+examples:
+
+  # --- Healthcare (HIPAA) ---
+  - warrant:
+      id: "hipaa-clinical-disclosure-001"
+      issuer: "Memorial Hospital Compliance Office"
+      signature: "ed25519:base64encodedSignatureHere..."
+      
+      who_can_act:
+        roles:
+          - "attending_physician"
+          - "care_coordinator"
+          - "discharge_planner"
+      
+      what_they_can_do:
+        actions:
+          - "read-patient-record"
+          - "send-patient-data"
+          - "generate-clinical-summary"
+        data_types:
+          - "PHI"
+          - "clinical-notes"
+          - "lab-results"
+      
+      under_what_conditions:
+        - patient_consent: required
+        - recipient_verified: required
+        - recipient_role: ["pcp", "specialist", "care_coordinator"]
+        - disclosure_format: "standard-clinical-summary"
+        - minimum_necessary: true  # HIPAA minimum necessary standard
+      
+      valid_from: "2026-01-01T00:00:00Z"
+      valid_until: "2026-12-31T23:59:59Z"
+      
+      trust_level_required: 2
+      audit_required: true
+      escalation_target: "compliance-officer@memorial.org"
+      
+      notes: "Covers routine clinical disclosures between care team members. Does not cover psychotherapy notes, substance abuse records (42 CFR Part 2), or HIV status in restricted jurisdictions."
+
+  # --- Finance (Fiduciary) ---
+  - warrant:
+      id: "fiduciary-trade-execution-001"
+      issuer: "Meridian Wealth Management Compliance"
+      signature: "ed25519:base64encodedSignatureHere..."
+      
+      who_can_act:
+        roles:
+          - "portfolio_manager"
+          - "senior_advisor"
+      
+      what_they_can_do:
+        actions:
+          - "execute-trade"
+          - "rebalance-portfolio"
+          - "generate-trade-confirmation"
+        data_types:
+          - "financial-account"
+          - "portfolio-holdings"
+          - "trade-orders"
+      
+      under_what_conditions:
+        - client_suitability_current: required  # Suitability review within 12 months
+        - trade_within_ips: required            # Consistent with Investment Policy Statement
+        - single_trade_limit: 50000             # Escalate above this amount
+        - concentration_check: required          # No single position > 10% of portfolio
+        - best_execution_verified: required
+      
+      valid_from: "2026-01-01T00:00:00Z"
+      valid_until: "2026-06-30T23:59:59Z"
+      
+      trust_level_required: 2
+      audit_required: true
+      escalation_target: "chief-compliance@meridianwm.com"
+      
+      notes: "Covers routine portfolio management trades. Trades exceeding $50K require human approval. Options, alternatives, and margin trading require separate warrant."
+
+  # --- Insurance (Claims) ---
+  - warrant:
+      id: "insurance-claims-processing-001"
+      issuer: "Great Lakes Insurance Underwriting Authority"
+      signature: "ed25519:base64encodedSignatureHere..."
+      
+      who_can_act:
+        roles:
+          - "claims_adjuster"
+          - "senior_adjuster"
+          - "claims_supervisor"
+      
+      what_they_can_do:
+        actions:
+          - "pull-claim-file"
+          - "verify-coverage"
+          - "calculate-payout"
+          - "issue-payment"
+          - "deny-claim"
+        data_types:
+          - "claims-data"
+          - "policy-data"
+          - "claimant-pii"
+      
+      under_what_conditions:
+        - claimant_identity_verified: required
+        - policy_status: "active"                # Must be active, not lapsed
+        - coverage_type_matches_claim: required
+        - fraud_flags_clear: required             # No open fraud investigation
+        - payout_within_authority:                 # Role-based limits
+            claims_adjuster: 25000
+            senior_adjuster: 50000
+            claims_supervisor: 150000
+        - supporting_documentation: required       # Photos, estimates, police report as applicable
+      
+      valid_from: "2026-01-01T00:00:00Z"
+      valid_until: "2026-12-31T23:59:59Z"
+      
+      trust_level_required: 1
+      audit_required: true
+      escalation_target: "claims-supervisor@greatlakesins.com"
+      
+      notes: "Covers standard property and casualty claims. Does not cover subrogation, bad faith claims, or claims under litigation. Lapsed policies must be denied regardless of other conditions."

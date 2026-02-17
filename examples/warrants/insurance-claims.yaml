@@ -1,0 +1,42 @@
+warrant:
+  id: "insurance-claims-processing-001"
+  issuer: "Great Lakes Insurance Underwriting Authority"
+  signature: "ed25519:base64encodedSignatureHere..."
+
+  who_can_act:
+    roles:
+      - "claims_adjuster"
+      - "senior_adjuster"
+      - "claims_supervisor"
+
+  what_they_can_do:
+    actions:
+      - "pull-claim-file"
+      - "verify-coverage"
+      - "calculate-payout"
+      - "issue-payment"
+      - "deny-claim"
+    data_types:
+      - "claims-data"
+      - "policy-data"
+      - "claimant-pii"
+
+  under_what_conditions:
+    - claimant_identity_verified: required
+    - policy_status: "active"                # Must be active, not lapsed
+    - coverage_type_matches_claim: required
+    - fraud_flags_clear: required             # No open fraud investigation
+    - payout_within_authority:                 # Role-based limits
+        claims_adjuster: 25000
+        senior_adjuster: 50000
+        claims_supervisor: 150000
+    - supporting_documentation: required       # Photos, estimates, police report as applicable
+
+  valid_from: "2026-01-01T00:00:00Z"
+  valid_until: "2026-12-31T23:59:59Z"
+
+  trust_level_required: 1
+  audit_required: true
+  escalation_target: "claims-supervisor@greatlakesins.com"
+
+  notes: "Covers standard property and casualty claims. Does not cover subrogation, bad faith claims, or claims under litigation. Lapsed policies must be denied regardless of other conditions."
