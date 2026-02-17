@@ -7,6 +7,10 @@ date-released: 2026-02-16
 license: Apache-2.0
 url: "https://github.com/tan2line/openwarrant"
 repository-code: "https://github.com/tan2line/openwarrant"
+doi: "10.5281/zenodo.18666989"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.18666989"
 abstract: >-
   OpenWarrant is an open-source, runtime-agnostic governance library that
   enables AI agents to prove they had authority to act. It introduces the

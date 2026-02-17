@@ -31,12 +31,18 @@
     "version": "0.1.0",
     "language": "eng",
     "access_right": "open",
+    "doi": "10.5281/zenodo.18666989",
     "related_identifiers": [
       {
         "identifier": "https://github.com/tan2line/openwarrant",
         "relation": "isSupplementTo",
         "resource_type": "software",
         "scheme": "url"
+      },
+      {
+        "identifier": "10.5281/zenodo.18666989",
+        "relation": "isIdenticalTo",
+        "scheme": "doi"
       }
     ],
     "notes": "GitHub repository: https://github.com/tan2line/openwarrant",
