@@ -33,13 +33,13 @@
     "access_right": "open",
     "related_identifiers": [
       {
-        "identifier": "",
+        "identifier": "https://github.com/tan2line/openwarrant",
         "relation": "isSupplementTo",
         "resource_type": "software",
         "scheme": "url"
       }
     ],
-    "notes": "GitHub repository URL and Substack article URL to be added upon publication. ORCID to be added if available.",
+    "notes": "GitHub repository: https://github.com/tan2line/openwarrant",
     "subjects": [
       {"term": "Artificial Intelligence", "scheme": "url", "identifier": "https://id.loc.gov/authorities/subjects/sh85008180"},
       {"term": "Computer security", "scheme": "url", "identifier": "https://id.loc.gov/authorities/subjects/sh90001862"}
