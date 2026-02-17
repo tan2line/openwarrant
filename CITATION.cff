@@ -5,8 +5,8 @@ title: "OpenWarrant: A Runtime-Agnostic Governance Library for AI Agents"
 version: 0.1.0
 date-released: 2026-02-16
 license: Apache-2.0
-url: "https://github.com/[TBD]/openwarrant"
-repository-code: "https://github.com/[TBD]/openwarrant"
+url: "https://github.com/tan2line/openwarrant"
+repository-code: "https://github.com/tan2line/openwarrant"
 abstract: >-
   OpenWarrant is an open-source, runtime-agnostic governance library that
   enables AI agents to prove they had authority to act. It introduces the

@@ -1,6 +1,6 @@
 # OpenWarrant
 
-[![CI](https://github.com/openwarrant/openwarrant/actions/workflows/ci.yml/badge.svg)](https://github.com/openwarrant/openwarrant/actions/workflows/ci.yml)
+[![CI](https://github.com/tan2line/openwarrant/actions/workflows/ci.yml/badge.svg)](https://github.com/tan2line/openwarrant/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.PLACEHOLDER.svg)](https://doi.org/10.5281/zenodo.PLACEHOLDER)
 
