@@ -18,6 +18,23 @@ class Decision(enum.Enum):
     EXPIRED = "EXPIRED"
 
 
+class WarrantStatus(enum.Enum):
+    """Warrant lifecycle status."""
+
+    ACTIVE = "active"
+    REVOKED = "revoked"
+    SUSPENDED = "suspended"
+
+
+@dataclass
+class Constraint:
+    """A structured constraint for context evaluation."""
+
+    field: str
+    operator: str  # eq|ne|in|not_in|gt|gte|lt|lte|contains|required
+    value: Any
+
+
 @dataclass
 class Warrant:
     """A warrant definition loaded from YAML."""
@@ -35,6 +52,9 @@ class Warrant:
     audit_required: bool = True
     escalation_target: str = ""
     notes: str = ""
+    context_constraints: list[Constraint] = field(default_factory=list)
+    allowed_capabilities: list[dict[str, str]] = field(default_factory=list)
+    status: Optional[WarrantStatus] = None
 
 
 @dataclass
@@ -93,3 +113,4 @@ class WarrantResponse:
     audit_hash: str = ""
     previous_hash: str = ""
     trust_elevation: Optional[TrustElevation] = None
+    deny_reasons: list[str] = field(default_factory=list)
