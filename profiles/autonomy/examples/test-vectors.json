@@ -1,0 +1,78 @@
+{
+  "profile": "OWAP-0.1",
+  "warrant": "critical-infrastructure-inspection.warrant.json",
+  "vectors": [
+    {
+      "name": "authorized-inspection",
+      "expected_decision": "AUTHORIZED",
+      "request": {
+        "system_id": "inspection-uas-017",
+        "action": "inspect-asset",
+        "timestamp": "2026-08-20T14:00:00Z",
+        "context": {
+          "zone": "GRID-7-B",
+          "altitude_m": 60,
+          "speed_mps": 10,
+          "software_version": "3.4.2",
+          "command_link_available": true,
+          "anomaly_detected": false,
+          "human_approval": false
+        }
+      }
+    },
+    {
+      "name": "denied-geographic-boundary",
+      "expected_decision": "DENIED",
+      "request": {
+        "system_id": "inspection-uas-017",
+        "action": "navigate",
+        "timestamp": "2026-08-20T14:05:00Z",
+        "context": {
+          "zone": "GRID-7-RESTRICTED",
+          "altitude_m": 60,
+          "speed_mps": 10,
+          "software_version": "3.4.2",
+          "command_link_available": true,
+          "anomaly_detected": false,
+          "human_approval": false
+        }
+      }
+    },
+    {
+      "name": "escalate-anomaly",
+      "expected_decision": "ESCALATE",
+      "request": {
+        "system_id": "inspection-uas-017",
+        "action": "inspect-asset",
+        "timestamp": "2026-08-20T14:10:00Z",
+        "context": {
+          "zone": "GRID-7-B",
+          "altitude_m": 60,
+          "speed_mps": 10,
+          "software_version": "3.4.2",
+          "command_link_available": true,
+          "anomaly_detected": true,
+          "human_approval": false
+        }
+      }
+    },
+    {
+      "name": "denied-configuration-drift",
+      "expected_decision": "DENIED",
+      "request": {
+        "system_id": "inspection-uas-017",
+        "action": "inspect-asset",
+        "timestamp": "2026-08-20T14:12:00Z",
+        "context": {
+          "zone": "GRID-7-B",
+          "altitude_m": 60,
+          "speed_mps": 10,
+          "software_version": "3.5.0",
+          "command_link_available": true,
+          "anomaly_detected": false,
+          "human_approval": false
+        }
+      }
+    }
+  ]
+}
