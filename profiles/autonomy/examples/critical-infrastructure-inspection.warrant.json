@@ -1,0 +1,67 @@
+{
+  "spec_version": "OWAP-0.1",
+  "warrant_id": "demo.utility-inspection.grid-7.2026-001",
+  "profile": "autonomy",
+  "issuer": {
+    "id": "demo-authority.utility-ops",
+    "name": "Synthetic Utility Operations Authority",
+    "authority_basis": "Demo inspection authorization for non-kinetic critical-infrastructure operations",
+    "contact": "demo@example.invalid"
+  },
+  "subject": {
+    "system_id": "inspection-uas-017",
+    "system_type": "uncrewed-aerial-inspection-system",
+    "manufacturer": "Synthetic Systems",
+    "model": "Sentinel-Inspect-Demo",
+    "software_version": "3.4.2",
+    "configuration_digest": "sha256:8e5f4b5f1a7d0d9bb8a5b0e52a489f158719463c5685946930f7d7a16f0d42ea"
+  },
+  "authority": {
+    "mission_class": "critical-infrastructure-inspection",
+    "permitted_actions": ["launch","navigate","inspect-asset","capture-imagery","return-to-base","land"],
+    "prohibited_actions": ["enter-restricted-zone","modify-infrastructure","interact-with-people","carry-payload-other-than-sensors"],
+    "autonomy_mode": "bounded-autonomy",
+    "human_control": {
+      "supervision_required": true,
+      "approval_required_for": ["continue-after-anomaly","reroute-outside-planned-corridor"],
+      "override_available": true
+    }
+  },
+  "operating_envelope": {
+    "temporal": {"valid_from": "2026-08-01T00:00:00Z", "valid_until": "2027-08-01T00:00:00Z"},
+    "geography": {"allowed_zones": ["GRID-7-A","GRID-7-B","GRID-7-C"], "denied_zones": ["GRID-7-RESTRICTED","PUBLIC-EVENT-ZONE"]},
+    "altitude_m": {"min": 15, "max": 100},
+    "speed_mps": {"max": 18},
+    "connectivity": {"command_link_required": true, "on_link_loss": "return"},
+    "environmental_limits": {"max_wind_mps": 12, "precipitation_allowed": false}
+  },
+  "preconditions": [
+    {"id": "software-version-attested", "field": "software_version", "operator": "eq", "value": "3.4.2", "on_failure": "DENIED", "evidence_type": "configuration-attestation"},
+    {"id": "command-link-present", "field": "command_link_available", "operator": "eq", "value": true, "on_failure": "DENIED", "evidence_type": "telemetry"},
+    {"id": "anomaly-review", "field": "anomaly_detected", "operator": "eq", "value": false, "on_failure": "ESCALATE", "evidence_type": "mission-event"}
+  ],
+  "evidence_requirements": {
+    "decision_log": true,
+    "sensor_provenance": true,
+    "configuration_attestation": true,
+    "human_approval_record": true,
+    "retention_days": 365
+  },
+  "escalation": {
+    "triggers": ["anomaly-detected","requested-action-outside-envelope","configuration-mismatch"],
+    "target": "mission-supervisor",
+    "default_safe_state": "hold-or-return"
+  },
+  "revocation": {
+    "status": "active",
+    "checked_at": "2026-08-20T06:00:00Z",
+    "endpoint": "https://example.invalid/openwarrant/revocations/demo.utility-inspection.grid-7.2026-001"
+  },
+  "audit_required": true,
+  "signature": {
+    "algorithm": "Ed25519",
+    "key_id": "demo-key-001",
+    "value": "demo-placeholder-not-cryptographically-valid"
+  },
+  "notes": "Synthetic, non-operational example. The signature is intentionally a placeholder and MUST NOT be treated as valid cryptographic authorization."
+}

@@ -4,11 +4,19 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18666989.svg)](https://doi.org/10.5281/zenodo.18666989)
 
-**A runtime-agnostic governance library for AI agents.**
+**Machine-readable authority for AI agents and autonomous systems.**
 
-OpenWarrant implements the **warrants-as-skills** paradigm: governance checks are native agent skills — upstream dependencies in the execution graph that are externally authored, cryptographically signed, and institutionally issued. Agents execute warrants but never author them.
+OpenWarrant implements the **warrants-as-skills** paradigm: governance checks are native upstream dependencies in the execution graph that are externally authored, cryptographically signed, and institutionally issued. Agents and autonomous systems may execute under warrants but never author their own authority.
 
-Zero framework dependencies. Works from the CLI, as a Python/TypeScript import, or inside any agent framework through optional thin adapters.
+Zero framework dependencies. The core works from the CLI, as a Python/TypeScript import, or inside agent frameworks through optional thin adapters.
+
+## Autonomy Profile — OWAP v0.1
+
+The experimental **OpenWarrant Autonomy Profile (OWAP) v0.1** extends the warrant primitive to physical and cyber-physical autonomous systems. It binds authority to a specific system identity and configuration and makes permitted actions, prohibited actions, operating-envelope limits, human-control requirements, evidence obligations, validity, and revocation machine-readable.
+
+**Evidence supports authority. Authority bounds autonomy. Operation generates evidence.**
+
+See [`profiles/autonomy/README.md`](profiles/autonomy/README.md) for the profile specification, [`profiles/autonomy/owap-v0.1.schema.json`](profiles/autonomy/owap-v0.1.schema.json) for the JSON Schema, and [`profiles/autonomy/reference/owap_runtime.py`](profiles/autonomy/reference/owap_runtime.py) for the reference evaluator. The included example is deliberately non-kinetic: a synthetic critical-infrastructure inspection system.
 
 ## Quick Start
 
@@ -87,7 +95,7 @@ OpenWarrant has five core components:
 4. **Audit Chain** — SHA-256 hash-linked tamper-evident records
 5. **Trust Escalation** — Agents earn trust through governed execution (Level 0-4)
 
-See [docs/architecture.md](docs/architecture.md) for the full specification.
+See [docs/architecture.md](docs/architecture.md) for the core specification.
 
 ## Running Tests
 
@@ -105,12 +113,12 @@ npx vitest run
 
 ## Project Structure
 
-```
+```text
 openwarrant/
-├── docs/                    # Architecture spec and warrant schema
-├── examples/
-│   ├── simulation.html      # Interactive governance simulation
-│   └── warrants/            # Example warrants (healthcare, finance, insurance)
+├── docs/                    # Core architecture spec and warrant schema
+├── examples/                # Agent-governance simulation and warrants
+├── profiles/
+│   └── autonomy/            # OWAP v0.1 schema, examples, test vectors, reference runtime
 ├── packages/
 │   ├── core-python/         # Python core library (zero deps)
 │   └── core-typescript/     # TypeScript core library
@@ -124,6 +132,7 @@ openwarrant/
 - **Healthcare** — HIPAA-compliant PHI disclosure warrants
 - **Finance** — Fiduciary trade execution warrants
 - **Insurance** — Claims processing warrants
+- **Autonomous systems** — machine-readable operating authority through OWAP v0.1
 
 ## Contributing
 
@@ -134,7 +143,7 @@ See [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) for guidelines.
 ```bibtex
 @software{plummer2026openwarrant,
   author = {Plummer, Andrew D.},
-  title = {OpenWarrant: A Runtime-Agnostic Governance Library for AI Agents},
+  title = {OpenWarrant: Machine-Readable Authority for AI Agents and Autonomous Systems},
   year = {2026},
   version = {0.1.0},
   license = {Apache-2.0}

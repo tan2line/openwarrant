@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.org/profiles/autonomy/owap-v0.1.schema.json",
+  "title": "OpenWarrant Autonomy Profile (OWAP) v0.1",
+  "description": "Machine-readable authorization envelope for bounded autonomous systems.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_version","warrant_id","profile","issuer","subject","authority","operating_envelope","evidence_requirements","revocation","audit_required","signature"],
+  "properties": {
+    "spec_version": {"const": "OWAP-0.1"},
+    "warrant_id": {"type": "string", "minLength": 3},
+    "profile": {"const": "autonomy"},
+    "parent_warrant": {"type": ["string","null"]},
+    "issuer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id","name","authority_basis"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "authority_basis": {"type": "string", "minLength": 1},
+        "contact": {"type": "string"}
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system_id","system_type","model","software_version","configuration_digest"],
+      "properties": {
+        "system_id": {"type": "string", "minLength": 1},
+        "system_type": {"type": "string", "minLength": 1},
+        "manufacturer": {"type": "string"},
+        "model": {"type": "string", "minLength": 1},
+        "software_version": {"type": "string", "minLength": 1},
+        "configuration_digest": {"type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$"}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mission_class","permitted_actions","prohibited_actions","autonomy_mode","human_control"],
+      "properties": {
+        "mission_class": {"type": "string", "minLength": 1},
+        "permitted_actions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "prohibited_actions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "autonomy_mode": {"enum": ["advisory","human-directed","supervised-autonomy","bounded-autonomy"]},
+        "human_control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["supervision_required","approval_required_for"],
+          "properties": {
+            "supervision_required": {"type": "boolean"},
+            "approval_required_for": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+            "override_available": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "operating_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["temporal","geography"],
+      "properties": {
+        "temporal": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["valid_from","valid_until"],
+          "properties": {
+            "valid_from": {"type": "string", "format": "date-time"},
+            "valid_until": {"type": "string", "format": "date-time"}
+          }
+        },
+        "geography": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed_zones","denied_zones"],
+          "properties": {
+            "allowed_zones": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+            "denied_zones": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+          }
+        },
+        "altitude_m": {"type": "object", "additionalProperties": false, "properties": {"min": {"type": "number"}, "max": {"type": "number"}}},
+        "speed_mps": {"type": "object", "additionalProperties": false, "properties": {"max": {"type": "number", "minimum": 0}}},
+        "connectivity": {"type": "object", "additionalProperties": false, "properties": {"command_link_required": {"type": "boolean"}, "on_link_loss": {"enum": ["hold","return","land","safe-state","escalate"]}}},
+        "environmental_limits": {"type": "object", "additionalProperties": {"type": ["number","string","boolean"]}}
+      }
+    },
+    "preconditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id","field","operator","value","on_failure"],
+        "properties": {
+          "id": {"type": "string"},
+          "field": {"type": "string"},
+          "operator": {"enum": ["eq","neq","lt","lte","gt","gte","in","not_in","present"]},
+          "value": {},
+          "on_failure": {"enum": ["DENIED","ESCALATE"]},
+          "evidence_type": {"type": "string"}
+        }
+      }
+    },
+    "evidence_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision_log","configuration_attestation","retention_days"],
+      "properties": {
+        "decision_log": {"type": "boolean"},
+        "sensor_provenance": {"type": "boolean"},
+        "configuration_attestation": {"type": "boolean"},
+        "human_approval_record": {"type": "boolean"},
+        "retention_days": {"type": "integer", "minimum": 0}
+      }
+    },
+    "escalation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "triggers": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "target": {"type": "string"},
+        "default_safe_state": {"type": "string"}
+      }
+    },
+    "revocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["active","suspended","revoked"]},
+        "checked_at": {"type": "string", "format": "date-time"},
+        "endpoint": {"type": "string", "format": "uri"}
+      }
+    },
+    "audit_required": {"type": "boolean"},
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm","key_id","value"],
+      "properties": {
+        "algorithm": {"enum": ["Ed25519"]},
+        "key_id": {"type": "string", "minLength": 1},
+        "value": {"type": "string", "minLength": 1}
+      }
+    },
+    "notes": {"type": "string"}
+  }
+}
