@@ -1,0 +1,315 @@
+{
+  "profile": "openwarrant.capability/0.1",
+  "purpose": "Language-agnostic acceptance cases for the first Capability Warrant vertical slice.",
+  "canonicalization": {
+    "manifest": {
+      "model": {
+        "provider": "openai",
+        "name": "example-model",
+        "version": "1"
+      },
+      "tools": [
+        "search.enterprise",
+        "email.draft"
+      ],
+      "mcp_servers": [],
+      "autonomy_level": "L1",
+      "runtime": {
+        "name": "demo-agent",
+        "version": "1.0.0"
+      }
+    },
+    "canonical_json": "{\"autonomy_level\":\"L1\",\"mcp_servers\":[],\"model\":{\"name\":\"example-model\",\"provider\":\"openai\",\"version\":\"1\"},\"runtime\":{\"name\":\"demo-agent\",\"version\":\"1.0.0\"},\"tools\":[\"search.enterprise\",\"email.draft\"]}",
+    "sha256": "70cc19bb72ba986e96995454054bfab7098faeba063c6e449fc6a328702f8e28"
+  },
+  "reference_warrant": {
+    "id": "WRT-CAP-DEMO-001",
+    "issuer": "OpenWarrant Demo Authority",
+    "signature": "test-signature",
+    "roles": ["operator"],
+    "actions": ["search.enterprise", "email.draft", "email.send"],
+    "data_types": ["internal"],
+    "valid_from": "2026-09-01T00:00:00Z",
+    "valid_until": "2027-09-01T00:00:00Z",
+    "audit_required": true,
+    "profiles": ["openwarrant.capability/0.1"],
+    "capability_assurance": {
+      "configuration": {
+        "fingerprint_algorithm": "sha256",
+        "fingerprint": "70cc19bb72ba986e96995454054bfab7098faeba063c6e449fc6a328702f8e28",
+        "manifest": {
+          "model": {
+            "provider": "openai",
+            "name": "example-model",
+            "version": "1"
+          },
+          "tools": ["search.enterprise", "email.draft"],
+          "mcp_servers": [],
+          "autonomy_level": "L1",
+          "runtime": {
+            "name": "demo-agent",
+            "version": "1.0.0"
+          }
+        }
+      },
+      "claims": [
+        {
+          "id": "CLAIM-SEARCH-001",
+          "capability": "search.enterprise",
+          "statement": "May search approved enterprise sources.",
+          "evidence_refs": ["EVC-SEARCH-001"],
+          "valid_until": "2027-01-01T00:00:00Z"
+        },
+        {
+          "id": "CLAIM-DRAFT-001",
+          "capability": "email.draft",
+          "statement": "May draft internal email but may not transmit externally.",
+          "evidence_refs": ["EVC-DRAFT-001"],
+          "conditions": {
+            "external_send": false
+          },
+          "valid_until": "2027-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [
+        {
+          "id": "EVC-SEARCH-001",
+          "type": "agent_tool_evaluation",
+          "source": "OpenWarrant Studio Evaluation Harness",
+          "evaluated_at": "2026-09-01T12:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "configuration_fingerprint": "70cc19bb72ba986e96995454054bfab7098faeba063c6e449fc6a328702f8e28",
+          "result": "pass",
+          "summary": "Enterprise search evaluated successfully."
+        },
+        {
+          "id": "EVC-DRAFT-001",
+          "type": "agent_tool_evaluation",
+          "source": "OpenWarrant Studio Evaluation Harness",
+          "evaluated_at": "2026-09-01T12:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "configuration_fingerprint": "70cc19bb72ba986e96995454054bfab7098faeba063c6e449fc6a328702f8e28",
+          "result": "pass",
+          "summary": "Drafting evaluated with external send unavailable."
+        }
+      ],
+      "operating_envelope": {
+        "network": "enterprise",
+        "data_classification": ["internal"],
+        "human_supervision": "required"
+      },
+      "change_triggers": [
+        {
+          "path": "manifest.model.version",
+          "materiality": "critical",
+          "effect": "suspend_affected_authority",
+          "reason": "Model version was part of the evaluated configuration."
+        },
+        {
+          "path": "manifest.tools",
+          "materiality": "critical",
+          "effect": "suspend_affected_authority",
+          "reason": "Tool additions can expand the action surface."
+        },
+        {
+          "path": "manifest.mcp_servers",
+          "materiality": "critical",
+          "effect": "suspend_affected_authority",
+          "reason": "MCP additions can expose new capabilities and resources."
+        }
+      ],
+      "reauthorization": {
+        "on_fingerprint_change": "suspend_affected_authority",
+        "on_evidence_expiry": "suspend_affected_authority",
+        "allow_unaffected_claims": true,
+        "review_target": "ai-assurance-board"
+      },
+      "telemetry_requirements": []
+    }
+  },
+  "reference_request": {
+    "agent_id": "agent-demo-001",
+    "role": "operator",
+    "data_type": "internal",
+    "context": {
+      "network": "enterprise",
+      "data_classification": "internal",
+      "human_supervision": "required"
+    }
+  },
+  "cases": [
+    {
+      "id": "CW-01-valid-exact-configuration",
+      "description": "A covered capability on the exact evaluated configuration is authorized.",
+      "request_action": "email.draft",
+      "current_configuration_fingerprint": "70cc19bb72ba986e96995454054bfab7098faeba063c6e449fc6a328702f8e28",
+      "evaluation_time": "2026-09-02T12:00:00Z",
+      "expected": {
+        "decision": "AUTHORIZED",
+        "reason_codes": [],
+        "assurance_state": "VALID",
+        "claim_id": "CLAIM-DRAFT-001",
+        "evidence_refs": ["EVC-DRAFT-001"]
+      }
+    },
+    {
+      "id": "CW-02-fingerprint-mismatch-after-mcp-addition",
+      "description": "Adding an MCP changes the governed configuration and triggers review/suspension.",
+      "request_action": "email.draft",
+      "current_manifest": {
+        "model": {
+          "provider": "openai",
+          "name": "example-model",
+          "version": "1"
+        },
+        "tools": ["search.enterprise", "email.draft", "email.send"],
+        "mcp_servers": ["mcp://mail-ops"],
+        "autonomy_level": "L1",
+        "runtime": {
+          "name": "demo-agent",
+          "version": "1.0.0"
+        }
+      },
+      "current_configuration_fingerprint": "f477d6b56e5fe99af1004ba53a43cc2a19747f2327f91884fadfb54021148373",
+      "evaluation_time": "2026-09-02T12:00:00Z",
+      "expected": {
+        "decision": "DENIED",
+        "reason_codes": ["capability_configuration_mismatch", "reauthorization_required"],
+        "assurance_state": "REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CW-03-new-capability-has-no-claim",
+      "description": "A newly exposed action cannot inherit authority if no capability claim exists.",
+      "request_action": "email.send",
+      "current_configuration_fingerprint": "f477d6b56e5fe99af1004ba53a43cc2a19747f2327f91884fadfb54021148373",
+      "evaluation_time": "2026-09-02T12:00:00Z",
+      "expected": {
+        "decision": "DENIED",
+        "reason_codes": ["capability_configuration_mismatch", "capability_claim_missing", "reauthorization_required"],
+        "assurance_state": "SUSPENDED"
+      }
+    },
+    {
+      "id": "CW-04-claim-references-missing-evidence",
+      "description": "A capability claim without resolvable supporting evidence fails closed.",
+      "request_action": "email.draft",
+      "current_configuration_fingerprint": "70cc19bb72ba986e96995454054bfab7098faeba063c6e449fc6a328702f8e28",
+      "mutations": {
+        "remove_evidence_ids": ["EVC-DRAFT-001"]
+      },
+      "evaluation_time": "2026-09-02T12:00:00Z",
+      "expected": {
+        "decision": "DENIED",
+        "reason_codes": ["capability_evidence_missing"],
+        "assurance_state": "PENDING_EVALUATION"
+      }
+    },
+    {
+      "id": "CW-05-evidence-expired",
+      "description": "Expired capability evidence cannot support current authority.",
+      "request_action": "email.draft",
+      "current_configuration_fingerprint": "70cc19bb72ba986e96995454054bfab7098faeba063c6e449fc6a328702f8e28",
+      "evaluation_time": "2027-02-01T12:00:00Z",
+      "expected": {
+        "decision": "DENIED",
+        "reason_codes": ["capability_evidence_expired", "reauthorization_required"],
+        "assurance_state": "EXPIRED"
+      }
+    },
+    {
+      "id": "CW-06-evidence-bound-to-different-configuration",
+      "description": "Evidence generated for another configuration cannot silently transfer.",
+      "request_action": "email.draft",
+      "current_configuration_fingerprint": "70cc19bb72ba986e96995454054bfab7098faeba063c6e449fc6a328702f8e28",
+      "mutations": {
+        "evidence_configuration_fingerprint": {
+          "EVC-DRAFT-001": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "evaluation_time": "2026-09-02T12:00:00Z",
+      "expected": {
+        "decision": "DENIED",
+        "reason_codes": ["capability_evidence_configuration_mismatch"],
+        "assurance_state": "REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CW-07-operating-envelope-violation",
+      "description": "Evidence is not transferable outside the evaluated operating envelope.",
+      "request_action": "search.enterprise",
+      "current_configuration_fingerprint": "70cc19bb72ba986e96995454054bfab7098faeba063c6e449fc6a328702f8e28",
+      "request_context": {
+        "network": "public",
+        "data_classification": "internal",
+        "human_supervision": "required"
+      },
+      "evaluation_time": "2026-09-02T12:00:00Z",
+      "expected": {
+        "decision": "DENIED",
+        "reason_codes": ["operating_envelope_violation"],
+        "assurance_state": "CONDITIONAL"
+      }
+    },
+    {
+      "id": "CW-08-unaffected-claim-may-remain-valid",
+      "description": "When allow_unaffected_claims is true, a scoped implementation may preserve an unaffected claim only if it can prove the material change does not alter that claim's evaluated dependency set.",
+      "request_action": "search.enterprise",
+      "current_configuration_fingerprint": "f477d6b56e5fe99af1004ba53a43cc2a19747f2327f91884fadfb54021148373",
+      "implementation_precondition": "claim_dependency_analysis proves CLAIM-SEARCH-001 is unaffected by mail MCP/tool additions",
+      "evaluation_time": "2026-09-02T12:00:00Z",
+      "expected": {
+        "decision": "AUTHORIZED",
+        "reason_codes": [],
+        "assurance_state": "CONDITIONAL",
+        "claim_id": "CLAIM-SEARCH-001"
+      }
+    },
+    {
+      "id": "CW-09-default-safe-behavior-without-dependency-analysis",
+      "description": "If the runtime cannot prove a claim is unaffected, fingerprint change does not inherit prior authority.",
+      "request_action": "search.enterprise",
+      "current_configuration_fingerprint": "f477d6b56e5fe99af1004ba53a43cc2a19747f2327f91884fadfb54021148373",
+      "implementation_precondition": "no claim dependency analysis available",
+      "evaluation_time": "2026-09-02T12:00:00Z",
+      "expected": {
+        "decision": "DENIED",
+        "reason_codes": ["capability_configuration_mismatch", "reauthorization_required"],
+        "assurance_state": "REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CW-10-successful-reauthorization",
+      "description": "After evaluation of the changed configuration, a new evidence-bound claim and updated warrant can restore authority.",
+      "request_action": "email.send",
+      "current_configuration_fingerprint": "f477d6b56e5fe99af1004ba53a43cc2a19747f2327f91884fadfb54021148373",
+      "mutations": {
+        "replace_warrant_configuration_fingerprint": "f477d6b56e5fe99af1004ba53a43cc2a19747f2327f91884fadfb54021148373",
+        "add_claim": {
+          "id": "CLAIM-SEND-002",
+          "capability": "email.send",
+          "statement": "May send approved internal email through the mail operations MCP under human supervision.",
+          "evidence_refs": ["EVC-SEND-002"]
+        },
+        "add_evidence": {
+          "id": "EVC-SEND-002",
+          "type": "agent_tool_evaluation",
+          "source": "OpenWarrant Studio Evaluation Harness",
+          "evaluated_at": "2026-09-03T12:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "configuration_fingerprint": "f477d6b56e5fe99af1004ba53a43cc2a19747f2327f91884fadfb54021148373",
+          "result": "pass",
+          "summary": "Mail MCP send action evaluated under required human supervision."
+        }
+      },
+      "evaluation_time": "2026-09-04T12:00:00Z",
+      "expected": {
+        "decision": "AUTHORIZED",
+        "reason_codes": [],
+        "assurance_state": "VALID",
+        "claim_id": "CLAIM-SEND-002",
+        "evidence_refs": ["EVC-SEND-002"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schema/profiles/capability-warrant-v0.1.schema.json",
+  "title": "OpenWarrant Capability Warrant Profile v0.1",
+  "description": "Additive profile binding OpenWarrant execution authority to a governed configuration, capability claims, supporting capability evidence, an operating envelope, and reauthorization rules.",
+  "type": "object",
+  "required": ["profiles", "capability_assurance"],
+  "properties": {
+    "profiles": {
+      "type": "array",
+      "contains": {"const": "openwarrant.capability/0.1"}
+    },
+    "capability_assurance": {
+      "$ref": "#/$defs/capabilityAssurance"
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "capabilityAssurance": {
+      "type": "object",
+      "required": [
+        "configuration",
+        "claims",
+        "evidence",
+        "operating_envelope",
+        "change_triggers",
+        "reauthorization"
+      ],
+      "properties": {
+        "configuration": {"$ref": "#/$defs/configuration"},
+        "claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/claim"}
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/evidence"}
+        },
+        "operating_envelope": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "change_triggers": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/changeTrigger"}
+        },
+        "reauthorization": {"$ref": "#/$defs/reauthorization"},
+        "telemetry_requirements": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/telemetryRequirement"},
+          "default": []
+        },
+        "assurance_state": {
+          "$ref": "#/$defs/assuranceState"
+        }
+      },
+      "additionalProperties": true
+    },
+    "configuration": {
+      "type": "object",
+      "required": ["fingerprint_algorithm", "fingerprint", "manifest"],
+      "properties": {
+        "fingerprint_algorithm": {"const": "sha256"},
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "manifest": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "claim": {
+      "type": "object",
+      "required": ["id", "capability", "statement", "evidence_refs"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "capability": {"type": "string", "minLength": 1},
+        "statement": {"type": "string", "minLength": 1},
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "conditions": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "valid_until": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": true
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "source",
+        "evaluated_at",
+        "configuration_fingerprint",
+        "result"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "type": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "artifact_uri": {"type": "string", "minLength": 1},
+        "artifact_hash": {
+          "type": "string",
+          "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+        },
+        "evaluated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "valid_until": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "configuration_fingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "result": {
+          "enum": ["pass", "conditional", "fail"]
+        },
+        "summary": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "changeTrigger": {
+      "type": "object",
+      "required": ["path", "materiality", "effect", "reason"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "materiality": {
+          "enum": ["critical", "review", "informational"]
+        },
+        "effect": {
+          "enum": [
+            "suspend_affected_authority",
+            "require_review",
+            "record_only"
+          ]
+        },
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "reauthorization": {
+      "type": "object",
+      "required": [
+        "on_fingerprint_change",
+        "on_evidence_expiry",
+        "allow_unaffected_claims"
+      ],
+      "properties": {
+        "on_fingerprint_change": {
+          "enum": [
+            "suspend_affected_authority",
+            "require_review",
+            "deny"
+          ]
+        },
+        "on_evidence_expiry": {
+          "enum": [
+            "suspend_affected_authority",
+            "require_review",
+            "deny"
+          ]
+        },
+        "allow_unaffected_claims": {"type": "boolean"},
+        "review_target": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "telemetryRequirement": {
+      "type": "object",
+      "required": ["metric", "condition", "effect"],
+      "properties": {
+        "metric": {"type": "string", "minLength": 1},
+        "condition": {"type": "string", "minLength": 1},
+        "effect": {
+          "enum": ["require_review", "suspend_affected_authority", "record_only"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "assuranceState": {
+      "enum": [
+        "PENDING_EVALUATION",
+        "VALID",
+        "CONDITIONAL",
+        "REVIEW_REQUIRED",
+        "SUSPENDED",
+        "REVOKED",
+        "EXPIRED"
+      ]
+    }
+  }
+}
