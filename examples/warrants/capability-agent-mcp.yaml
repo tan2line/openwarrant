@@ -1,0 +1,128 @@
+# Reference example for OpenWarrant Capability Warrant Profile v0.1.
+# This file is a specification example; current runtimes require profile support
+# before capability_assurance is enforced.
+
+warrant:
+  id: "cap-agent-assistant-001"
+  issuer: "Example Enterprise AI Assurance Board"
+  signature: "ed25519:base64encodedSignatureHere..."
+
+  profiles:
+    - "openwarrant.capability/0.1"
+
+  who_can_act:
+    roles:
+      - "enterprise_agent"
+
+  what_they_can_do:
+    actions:
+      - "search.enterprise"
+      - "email.draft"
+    data_types:
+      - "internal"
+
+  under_what_conditions:
+    - human_supervision: required
+    - external_send: false
+
+  valid_from: "2026-09-01T00:00:00Z"
+  valid_until: "2026-12-01T00:00:00Z"
+  trust_level_required: 1
+  audit_required: true
+  escalation_target: "ai-assurance-board"
+
+  capability_assurance:
+    assurance_state: "VALID"
+
+    configuration:
+      fingerprint_algorithm: "sha256"
+      fingerprint: "5f903e3d633160baf72f0c2d9b7c7bf3277b3eaf835753b1fadf77ec07de5348"
+      manifest:
+        model:
+          provider: "openai"
+          name: "example-model"
+          version: "1"
+        tools:
+          - "email.draft"
+          - "search.enterprise"
+        mcp_servers: []
+        autonomy_level: "L1"
+        runtime:
+          name: "custom-agent"
+          version: "1.4.2"
+
+    claims:
+      - id: "claim-search-enterprise-001"
+        capability: "search.enterprise"
+        statement: "May search approved enterprise sources under human supervision."
+        evidence_refs:
+          - "EVC-20260901-agent-eval-01"
+
+      - id: "claim-email-draft-001"
+        capability: "email.draft"
+        statement: "May draft internal email but may not transmit externally."
+        evidence_refs:
+          - "EVC-20260901-agent-eval-01"
+        conditions:
+          external_send: false
+
+    evidence:
+      - id: "EVC-20260901-agent-eval-01"
+        type: "agent_tool_evaluation"
+        source: "OpenWarrant Studio Evaluation Harness"
+        artifact_uri: "ow://evidence/EVC-20260901-agent-eval-01"
+        artifact_hash: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        evaluated_at: "2026-09-01T12:00:00Z"
+        valid_until: "2026-12-01T00:00:00Z"
+        configuration_fingerprint: "5f903e3d633160baf72f0c2d9b7c7bf3277b3eaf835753b1fadf77ec07de5348"
+        result: "pass"
+        summary: "Enterprise search and internal drafting passed; external messaging unavailable in the evaluated configuration."
+
+    operating_envelope:
+      network: "enterprise"
+      data_classification:
+        - "internal"
+      human_supervision: "required"
+      external_send: false
+
+    change_triggers:
+      - path: "manifest.model.version"
+        materiality: "critical"
+        effect: "suspend_affected_authority"
+        reason: "Model version is part of the evaluated configuration."
+
+      - path: "manifest.tools"
+        materiality: "critical"
+        effect: "suspend_affected_authority"
+        reason: "Tool additions or removals can change the action surface."
+
+      - path: "manifest.mcp_servers"
+        materiality: "critical"
+        effect: "suspend_affected_authority"
+        reason: "MCP additions can introduce new tools, data access, or execution authority."
+
+      - path: "manifest.autonomy_level"
+        materiality: "critical"
+        effect: "suspend_affected_authority"
+        reason: "Autonomy-level changes alter the human-machine execution boundary."
+
+    reauthorization:
+      on_fingerprint_change: "suspend_affected_authority"
+      on_evidence_expiry: "suspend_affected_authority"
+      allow_unaffected_claims: true
+      review_target: "ai-assurance-board"
+
+    telemetry_requirements:
+      - metric: "unauthorized_tool_attempts"
+        condition: "> 0"
+        effect: "require_review"
+
+      - metric: "tool_error_rate"
+        condition: "> 0.05 over 100 actions"
+        effect: "require_review"
+
+  notes: >-
+    Reference vertical slice: adding a new MCP server or tool changes the
+    governed configuration fingerprint. A conformant implementation must not
+    allow newly exposed capability to inherit authority from this warrant
+    without applicable evidence and reauthorization.
