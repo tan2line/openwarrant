@@ -342,6 +342,8 @@ def _extract_warrant(data: dict[str, Any]) -> Warrant:
         audit_required=bool(w.get("audit_required", True)),
         escalation_target=str(w.get("escalation_target", "")),
         notes=str(w.get("notes", "")),
+        accountable_owner=str(w.get("accountable_owner", "")),
+        reconciliation_policy=str(w.get("reconciliation_policy", "escalate")),
     )
 
 

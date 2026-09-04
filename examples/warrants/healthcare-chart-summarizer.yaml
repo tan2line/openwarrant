@@ -1,0 +1,66 @@
+# Read-only chart summarizer warrant (v0.2)
+#
+# "Credential the summarizer." A read-only AI summarizer never writes to the
+# record, but the clinician who trusts its summary still acts. This warrant
+# applies the four credentialing moves:
+#
+#   1. Scope    — which sources, which time window, which questions
+#   2. Receipt  — every summary attests what it read, skipped, and produced
+#   3. Owner    — one named human accountable; "the vendor" is not an owner
+#   4. Disagreement protocol — two summarizers diverging is a flag, not a coin toss
+#
+# Agents execute warrants. They never author them.
+
+warrant:
+  id: "chart-summarizer-readonly-001"
+  issuer: "Memorial Hospital Medical Staff Office"
+  signature: "ed25519:base64encodedSignatureHere..."
+
+  # --- Move 1: scope (privileges) ---
+  who_can_act:
+    roles:
+      - "chart_summarizer_agent"
+
+  what_they_can_do:
+    actions:
+      - "read-patient-record"
+      - "generate-clinical-summary"
+      - "generate-interval-change-summary"   # "what changed since last visit"
+    data_types:
+      - "clinical-notes"
+      - "lab-results"
+      - "medication-list"
+      - "problem-list"
+      - "specialist-documentation"
+
+  under_what_conditions:
+    - requester_role: ["attending_physician", "resident_physician", "advanced_practice_provider"]
+    - write_access: false                    # read-only, enforced not assumed
+    - coverage_window_max_days: 365          # may not silently drop older data without declaring it
+    - receipt_required: true                 # Move 2: no summary leaves without a receipt
+    - source_refs_required: true             # every claim points back to the chart
+    - declare_gaps: true                     # unparseable / omitted sources must be listed
+    - excluded_record_types: ["psychotherapy-notes", "42-cfr-part-2", "restricted-hiv-status"]
+    - minimum_necessary: true
+
+  valid_from: "2026-09-01T00:00:00Z"
+  valid_until: "2027-02-28T23:59:59Z"       # six-month privilege cycle, renewable on review
+
+  trust_level_required: 2
+  audit_required: true
+
+  # --- Move 3: owner ---
+  accountable_owner: "cmio@memorial.org"    # a named human, not "the vendor"
+  escalation_target: "cmio@memorial.org"
+
+  # --- Move 4: disagreement protocol ---
+  reconciliation_policy: "escalate"          # escalate | deny | log
+
+  notes: >-
+    Grants read-only chart summarization privileges for one summarizer agent.
+    Each summary must be attested with an execution receipt (inputs_read,
+    inputs_unavailable, inputs_omitted, coverage_window, source_refs,
+    output_hash). When two summarizers produce divergent outputs for the same
+    patient over overlapping coverage, reconciliation escalates to the
+    accountable owner. Renewal requires review of receipts and reconciliation
+    history for the privilege period.

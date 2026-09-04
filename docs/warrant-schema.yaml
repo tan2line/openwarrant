@@ -1,4 +1,4 @@
-# OpenWarrant Schema Specification v0.1
+# OpenWarrant Schema Specification v0.2
 # 
 # This file defines the structure for warrant definitions.
 # Warrants are externally authored, cryptographically signed,
@@ -11,7 +11,7 @@
 # =============================================================================
 
 warrant_schema:
-  version: "0.1.0"
+  version: "0.2.0"
   
   required_fields:
     - id            # Unique identifier (string, institution-namespaced)
@@ -30,6 +30,11 @@ warrant_schema:
     - revocation_url         # Endpoint to check if warrant has been revoked
     - parent_warrant         # ID of parent warrant (for hierarchical authority)
     - notes                  # Human-readable description of intent
+    # --- v0.2 ---
+    - accountable_owner      # Named human accountable for executions under this warrant.
+                             # "The vendor" is not an owner. Defaults to escalation_target.
+    - reconciliation_policy  # What to do when two executions under warrant diverge on the
+                             # same target: escalate (default) | deny | log
 
 # =============================================================================
 # WARRANT REQUEST SCHEMA (what the agent sends to the engine)
@@ -77,6 +82,73 @@ warrant_response:
     trust_elevation:    # Whether this execution earned trust credit
       eligible: false
       new_level: null
+
+# =============================================================================
+# EXECUTION RECEIPT SCHEMA (v0.2) — what the agent attests after acting
+# =============================================================================
+#
+# The warrant check answers "may this agent act?" The audit chain records that
+# answer. The execution receipt answers the next question: "what did the agent
+# actually read when it acted, what could it not read, and what did it leave
+# out?" Receipts matter most for READ-ONLY executions such as chart
+# summarization: a summary that omits a critical value never wrote to the
+# record, but the human who trusted it still acted. The receipt makes the
+# omission visible. Receipts are hash-linked into the same audit chain as
+# decisions (record_type: execution_receipt).
+
+execution_receipt:
+  required_fields:
+    - agent_id
+    - warrant_id
+    - action
+    - target              # what the execution operated on (patient_id, account_id, ...)
+    - output_hash         # SHA-256 of the produced artifact
+  optional_fields:
+    - inputs_read         # sources actually consumed
+    - inputs_unavailable: # sources in scope the agent could not use
+        - source: ""
+          reason: ""      # unparseable | not_authorized | truncated | ...
+    - inputs_omitted:     # sources in scope the agent chose not to use
+        - source: ""
+          reason: ""      # outside_coverage_window | deduplicated | ...
+    - coverage_window:    # time window of source data considered
+        start: ""         # ISO 8601
+        end: ""           # ISO 8601
+    - source_refs         # pointers back to the system of record for every claim
+    - accountable_owner   # populated from the warrant
+    - produced_at         # ISO 8601
+    - correlation_id
+  derived_fields:
+    - receipt_hash        # SHA-256 over the canonical receipt (excluding itself)
+
+# =============================================================================
+# RECONCILIATION SCHEMA (v0.2) — the disagreement protocol
+# =============================================================================
+#
+# When two or more executions under warrant produce different outputs for the
+# same target over overlapping coverage, that is a flag, not a coin toss.
+
+reconciliation_result:
+  fields:
+    status:             # CONSISTENT | DIVERGENT | INCOMPARABLE | INSUFFICIENT
+    decision:           # AUTHORIZED | ESCALATE | DENIED (per reconciliation_policy)
+    target: ""
+    action: ""
+    receipt_hashes: []
+    divergences:
+      - kind: ""        # output | inputs_read | gaps
+        detail: ""
+        receipts: []    # receipt hashes involved
+    accountable_owners: []   # who gets the escalation
+    detail: ""
+    audit_hash: ""      # this reconciliation's record on the chain
+    previous_hash: ""
+
+reconciliation_statuses:
+  CONSISTENT:   "Same target, action, overlapping coverage, identical output → AUTHORIZED."
+  DIVERGENT:    "Same target/action/coverage, different output or read set → per policy (default ESCALATE)."
+  INCOMPARABLE: "Different target, action, or non-overlapping coverage → nothing to reconcile."
+  INSUFFICIENT: "Fewer than two receipts."
 
 # =============================================================================
 # DECISION TYPES

@@ -52,6 +52,12 @@ class Warrant:
     audit_required: bool = True
     escalation_target: str = ""
     notes: str = ""
+    # v0.2 — named human accountable for executions under this warrant.
+    # "The vendor" is not an owner. Defaults to escalation_target if unset.
+    accountable_owner: str = ""
+    # v0.2 — what to do when two executions under this warrant diverge on
+    # the same target: "escalate" (default) | "log" | "deny"
+    reconciliation_policy: str = "escalate"
     context_constraints: list[Constraint] = field(default_factory=list)
     allowed_capabilities: list[dict[str, str]] = field(default_factory=list)
     status: Optional[WarrantStatus] = None

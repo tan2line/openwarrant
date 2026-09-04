@@ -10,6 +10,7 @@ from openwarrant.action_matcher import action_matches
 from openwarrant.audit import AuditChain
 from openwarrant.conditions import evaluate_constraint
 from openwarrant.loader import load_warrant_dir, load_warrant_file
+from openwarrant.receipts import ExecutionReceipt, ReconciliationResult, reconcile
 from openwarrant.models import (
     ConditionResult,
     Constraint,
@@ -380,6 +381,48 @@ class WarrantEngine:
         )
         self._record_and_notify(response, request)
         return response
+
+    # ------------------------------------------------------------------
+    # v0.2 — execution receipts and reconciliation
+    # ------------------------------------------------------------------
+
+    def attest(self, receipt: ExecutionReceipt) -> ExecutionReceipt:
+        """Record what a warranted execution actually read, skipped, and produced.
+
+        The warrant check answers "may it act". The receipt answers "what did
+        it look at when it did". Both land on the same hash chain.
+        """
+        if not receipt.accountable_owner:
+            for w in self._warrants:
+                if w.id == receipt.warrant_id:
+                    receipt.accountable_owner = w.accountable_owner or w.escalation_target
+                    receipt.receipt_hash = receipt.compute_hash()
+                    break
+        self._audit.record_execution(receipt)
+        return receipt
+
+    def reconcile(
+        self,
+        receipts: list[ExecutionReceipt],
+        policy: Optional[str] = None,
+    ) -> ReconciliationResult:
+        """Apply the disagreement protocol across receipts on one target.
+
+        Policy defaults to the warrant's reconciliation_policy (first receipt's
+        warrant), else "escalate". DIVERGENT results fire the escalate hook.
+        """
+        if policy is None:
+            policy = "escalate"
+            if receipts:
+                for w in self._warrants:
+                    if w.id == receipts[0].warrant_id:
+                        policy = w.reconciliation_policy or "escalate"
+                        break
+        result = reconcile(receipts, policy=policy)
+        self._audit.record_reconciliation(result)
+        if result.decision == Decision.ESCALATE and self._on_escalate:
+            self._on_escalate(result)  # type: ignore[arg-type]
+        return result
 
     def _record_and_notify(
         self, response: WarrantResponse, request: WarrantRequest

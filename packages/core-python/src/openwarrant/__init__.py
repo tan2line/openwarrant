@@ -4,6 +4,15 @@ from openwarrant.action_matcher import action_matches
 from openwarrant.audit import AuditChain
 from openwarrant.conditions import evaluate_constraint
 from openwarrant.engine import WarrantEngine
+from openwarrant.receipts import (
+    CoverageWindow,
+    Divergence,
+    ExecutionReceipt,
+    InputGap,
+    ReconciliationResult,
+    ReconciliationStatus,
+    reconcile,
+)
 from openwarrant.models import (
     ConditionResult,
     Constraint,
@@ -16,7 +25,7 @@ from openwarrant.models import (
     WarrantStatus,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "WarrantEngine",
@@ -32,4 +41,11 @@ __all__ = [
     "WarrantStatus",
     "action_matches",
     "evaluate_constraint",
+    "ExecutionReceipt",
+    "InputGap",
+    "CoverageWindow",
+    "ReconciliationResult",
+    "ReconciliationStatus",
+    "Divergence",
+    "reconcile",
 ]

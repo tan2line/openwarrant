@@ -1,4 +1,4 @@
-# OpenWarrant: Architecture Specification v0.1
+# OpenWarrant: Architecture Specification v0.2
 
 ## An Open-Source Governance Runtime for AI Agents
 
@@ -312,6 +312,73 @@ This provides:
 - **Non-repudiation**: The agent can prove what it was authorized to do
 - **Reconstructability**: The full decision history can be replayed
 - **No blockchain required**: Simple hash chains, stored locally, verifiable by any auditor
+
+### 4b. Execution Receipts and Reconciliation (v0.2)
+
+The audit chain proves an agent *was authorized* to act. It does not prove what the agent *looked at* when it acted. For write actions the system of record shows the result. For read-only actions — chart summarization, pre-visit prep, "what changed since last visit" — there is no write to inspect, and the human who trusts the output still acts on it. A summary that omits a critical lab value never touched the record; the clinician who relied on it wrote the orders anyway.
+
+OpenWarrant v0.2 closes that gap with two additions.
+
+#### Execution Receipt
+
+After a warranted execution, the agent attests a receipt: what it read, what it could not read, what it left out, the coverage window it considered, and pointers back to the source for every claim. The receipt carries the `accountable_owner` from the warrant and is hash-linked into the same audit chain as the authorization decision (`record_type: execution_receipt`).
+
+```json
+{
+  "execution_receipt": {
+    "agent_id": "summarizer-A",
+    "warrant_id": "chart-summarizer-readonly-001",
+    "action": "generate-interval-change-summary",
+    "target": "patient-123",
+    "coverage_window": {"start": "2026-03-01T00:00:00Z", "end": "2026-09-01T00:00:00Z"},
+    "inputs_read": ["notes/2026-08-14", "labs/2026-08-20", "meds/current"],
+    "inputs_unavailable": [{"source": "cardiology/2026-07-30", "reason": "unparseable"}],
+    "inputs_omitted": [],
+    "source_refs": ["Epic:note:8841", "Epic:lab:K:2026-08-20"],
+    "output_hash": "sha256:...",
+    "accountable_owner": "cmio@memorial.org",
+    "receipt_hash": "sha256:..."
+  }
+}
+```
+
+#### Reconciliation (the disagreement protocol)
+
+Most large deployments now run more than one summarizer over the same record. When two executions under warrant produce different outputs for the same target over overlapping coverage, that is a flag, not a coin toss. `reconcile()` compares receipts and returns `CONSISTENT`, `DIVERGENT`, `INCOMPARABLE`, or `INSUFFICIENT`. A `DIVERGENT` result resolves per the warrant's `reconciliation_policy` — `escalate` (default), `deny`, or `log` — and is itself recorded on the chain (`record_type: reconciliation`) with the accountable owners who receive the escalation.
+
+```python
+from openwarrant import WarrantEngine, ExecutionReceipt, CoverageWindow, InputGap
+
+engine = WarrantEngine(warrant_store="examples/warrants")
+w = next(x for x in engine.warrants if x.id == "chart-summarizer-readonly-001")
+
+a = ExecutionReceipt.for_warrant(w, "summarizer-A", "generate-interval-change-summary", "patient-123",
+        inputs_read=["labs/2026-08-20"], coverage_window=CoverageWindow("2026-03-01T00:00:00Z", "2026-09-01T00:00:00Z"),
+        output_hash=ExecutionReceipt.hash_output("K 6.1 on 8/20 — new since last visit"))
+b = ExecutionReceipt.for_warrant(w, "summarizer-B", "generate-interval-change-summary", "patient-123",
+        inputs_read=[], inputs_unavailable=[InputGap("labs/2026-08-20", "unparseable")],
+        coverage_window=CoverageWindow("2026-03-01T00:00:00Z", "2026-09-01T00:00:00Z"),
+        output_hash=ExecutionReceipt.hash_output("no interval change"))
+
+engine.attest(a); engine.attest(b)
+result = engine.reconcile([a, b])
+# result.status → DIVERGENT, result.decision → ESCALATE
+# result.divergences → output differs; read sets differ; B skipped labs/2026-08-20 (unparseable)
+# result.accountable_owners → ["cmio@memorial.org"]
+```
+
+#### Credentialing the summarizer
+
+Together with the existing warrant fields this gives a deploying institution the four moves it already uses for a new clinician it does not fully know yet:
+
+| Move | Where it lives |
+|------|----------------|
+| Scope (privileges): which sources, which window, which questions | `what_they_can_do`, `under_what_conditions`, `valid_from`/`valid_until` |
+| Receipt: what was compared, what couldn't be parsed, what was left out | `execution_receipt` on the audit chain |
+| Owner: one named human; "the vendor" is not an owner | `accountable_owner` (falls back to `escalation_target`) |
+| Disagreement protocol: two outputs differing is a flag, not a coin toss | `reconciliation_policy` + `reconcile()` |
+
+See `examples/warrants/healthcare-chart-summarizer.yaml` for a complete warrant.
 
 ### 5. Core Library + Framework Adapters
 

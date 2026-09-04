@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this software or reference this specification, please cite it as below."
 type: software
 title: "OpenWarrant: A Runtime-Agnostic Governance Library for AI Agents"
-version: 0.1.0
-date-released: 2026-02-16
+version: 0.2.0
+date-released: 2026-09-03
 license: Apache-2.0
 url: "https://github.com/tan2line/openwarrant"
 repository-code: "https://github.com/tan2line/openwarrant"

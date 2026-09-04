@@ -7,9 +7,12 @@ import json
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from openwarrant.models import WarrantResponse
+
+if TYPE_CHECKING:  # avoid import cycle at runtime
+    from openwarrant.receipts import ExecutionReceipt, ReconciliationResult
 
 
 @dataclass
@@ -26,6 +29,10 @@ class AuditRecord:
     correlation_id: Optional[str]
     previous_hash: str
     record_hash: str
+    # v0.2 — record_type distinguishes authorization decisions from
+    # execution receipts and reconciliations. All share one hash chain.
+    record_type: str = "decision"
+    payload: Optional[dict[str, Any]] = None
 
 
 class AuditChain:
@@ -108,6 +115,86 @@ class AuditChain:
         if self._on_record:
             self._on_record(record)
 
+        return record
+
+    def _append(
+        self,
+        record_type: str,
+        agent_id: str,
+        warrant_id: Optional[str],
+        action: str,
+        decision: str,
+        conditions: list[dict[str, Any]],
+        correlation_id: Optional[str],
+        payload: Optional[dict[str, Any]],
+    ) -> AuditRecord:
+        """Append an arbitrary typed record to the chain."""
+        timestamp = datetime.utcnow().isoformat() + "Z"
+        content = json.dumps(
+            {
+                "record_type": record_type,
+                "agent_id": agent_id,
+                "warrant_id": warrant_id,
+                "action": action,
+                "decision": decision,
+                "conditions": conditions,
+                "correlation_id": correlation_id,
+                "payload": payload,
+                "timestamp": timestamp,
+            },
+            sort_keys=True,
+            default=str,
+        )
+        record_hash = self._compute_hash(content, self._previous_hash)
+        record = AuditRecord(
+            record_id=f"aud-{uuid.uuid4().hex[:12]}",
+            timestamp=timestamp,
+            agent_id=agent_id,
+            warrant_id=warrant_id,
+            action=action,
+            decision=decision,
+            conditions_evaluated=conditions,
+            correlation_id=correlation_id,
+            previous_hash=self._previous_hash,
+            record_hash=record_hash,
+            record_type=record_type,
+            payload=payload,
+        )
+        self._chain.append(record)
+        self._previous_hash = record_hash
+        if self._on_record:
+            self._on_record(record)
+        return record
+
+    def record_execution(self, receipt: "ExecutionReceipt") -> AuditRecord:
+        """Append an execution receipt (what was read, skipped, produced)."""
+        return self._append(
+            record_type="execution_receipt",
+            agent_id=receipt.agent_id,
+            warrant_id=receipt.warrant_id,
+            action=receipt.action,
+            decision="EXECUTED",
+            conditions=[],
+            correlation_id=receipt.correlation_id,
+            payload=receipt.to_dict(),
+        )
+
+    def record_reconciliation(
+        self, result: "ReconciliationResult", agent_id: str = "reconciler"
+    ) -> AuditRecord:
+        """Append a reconciliation outcome across two or more receipts."""
+        record = self._append(
+            record_type="reconciliation",
+            agent_id=agent_id,
+            warrant_id=None,
+            action=result.action,
+            decision=result.decision.value,
+            conditions=[],
+            correlation_id=None,
+            payload=result.to_dict(),
+        )
+        result.audit_hash = record.record_hash
+        result.previous_hash = record.previous_hash
         return record
 
     def verify_chain(self) -> bool:
