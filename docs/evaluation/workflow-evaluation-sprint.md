@@ -1,5 +1,7 @@
 # Workflow Evaluation Sprint
 
+**A Capability Treasury offering under InnerLearn · fCAIGO.** Canonical offering card: [CT-OFF-001](../capability-treasury/offerings/CT-OFF-001-openwarrant-eval.md).
+
 **Know what your AI workflow can support, where it fails, and what decision the evidence justifies.**
 
 Proposed founding offer · For Andrew's review · Pricing is a planning hypothesis, not a market benchmark or a commitment by any partner.
@@ -78,7 +80,7 @@ Your team has an AI workflow approaching a decision. We help define the tests th
 
 ## Portfolio placement
 
-OpenWarrant supplies the public engineering substrate. OpenWarrant Studio is the proposed destination for evidence-to-decision integration. OneHouseGovernance is a potential service-delivery home, subject to partner agreement. AIR Labs is a relevant workflow pattern; this proposal does not claim DHA sponsorship, institutional approval or access to government information.
+Capability Treasury is the portfolio home for this offering and its reusable assets under InnerLearn · fCAIGO. OpenWarrant supplies the public engineering substrate. OpenWarrant Studio is the proposed destination for evidence-to-decision integration. Existing licenses are preserved. Any partner delivery arrangement is separately agreed; the offering does not claim institutional sponsorship.
 
 ## Buyer validation before expansion
 

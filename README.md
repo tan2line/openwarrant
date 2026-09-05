@@ -20,6 +20,10 @@ and unsigned evidence receipts. The included demo improves from 20/25 to 21/25
 passing cases while introducing two regressions. These are hand-authored fixtures,
 not model-performance measurements. Evaluation never issues authorization.
 
+The associated [Workflow Evaluation Sprint](docs/capability-treasury/offerings/CT-OFF-001-openwarrant-eval.md)
+is the first registered offering in [Capability Treasury](docs/capability-treasury/README.md),
+the user-designated portfolio home under InnerLearn · fCAIGO.
+
 ```bash
 python packages/eval-python/evalkit.py run --outputs packages/eval-python/data/candidate.outputs.json --out /tmp/oweval
 ```
