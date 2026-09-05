@@ -1,0 +1,43 @@
+{
+  "before": "ab91f04640d1dcc3b52dff3a460efa42c694b00d3a507455ad275aa1f524f03f",
+  "after": "ba74d10558b70f8f0605890c9e346d4e02d081c72db0846c4bf716f58ebb60b0",
+  "changes": [
+    {
+      "case_id": "C01",
+      "regressed_checks": [],
+      "improved_checks": [
+        "evidence"
+      ]
+    },
+    {
+      "case_id": "C04",
+      "regressed_checks": [
+        "evidence"
+      ],
+      "improved_checks": []
+    },
+    {
+      "case_id": "C11",
+      "regressed_checks": [],
+      "improved_checks": [
+        "policy"
+      ]
+    },
+    {
+      "case_id": "C21",
+      "regressed_checks": [],
+      "improved_checks": [
+        "authority"
+      ]
+    },
+    {
+      "case_id": "C24",
+      "regressed_checks": [
+        "authority"
+      ],
+      "improved_checks": []
+    }
+  ],
+  "regression_cases": 2,
+  "improvement_cases": 3
+}

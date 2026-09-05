@@ -1,0 +1,303 @@
+{
+  "schema_version": "0.1.0",
+  "name": "Capability Treasury",
+  "umbrella": "InnerLearn · fCAIGO",
+  "naming_note": "fCAIGO retained verbatim without assumed expansion",
+  "scope": "Verified OpenWarrant assets only; not an exhaustive InnerLearn IP inventory",
+  "inspected_base_commit": "cb7ba937fd0a79eb8f3a9e5c05ac0db7c5110eff",
+  "registration_effect": "Portfolio cataloging only; no ownership transfer, valuation or license change",
+  "assets": [
+    {
+      "id": "CT-CODE-001",
+      "name": "OpenWarrant core",
+      "type": "code",
+      "maturity": "working_demo",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "Runtime governance library; separate from evaluation evidence.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "packages/core-python/src/openwarrant/engine.py",
+          "sha256": "58d0c0071b015cd0de1e93fa0e5b881fba294049e4253db9307f49af6396957c"
+        },
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "packages/core-typescript/src/engine.ts",
+          "sha256": "fb78cd07e0f4f2d272aaacaeb9adb2196af50b87734c6eb489464cc4110a6e56"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Retain core tests and define any new integration boundary.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-CODE-002",
+      "name": "OpenWarrant Eval runner",
+      "type": "code",
+      "maturity": "working_demo",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "Evaluate structured outputs, compare runs and reconcile reviews.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "packages/eval-python/evalkit.py",
+          "sha256": "561d3e52ccfaca517e706a0031f352f300a6dca0042f493c3f12a1c2fdb12ff8"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Add an approved live-model adapter when scoped.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-DATA-001",
+      "name": "Synthetic scenario pack",
+      "type": "data",
+      "maturity": "working_demo",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "25 fictional scenarios across five failure categories.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "packages/eval-python/data/cases.json",
+          "sha256": "2bbb5f7a95f5e9a6830ad39a75ae2adf62be69c36b7e322276308d4e72e66df2"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Develop expert-validated cases for a defined customer workflow.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-METHOD-001",
+      "name": "Evaluation rubric and protocol",
+      "type": "method",
+      "maturity": "draft",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "Versioned criteria with critical failures and independent review.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "packages/eval-python/data/rubric.json",
+          "sha256": "0e266fc395987a14a2f319c52c7fb882a735c12b027e284dfec559ba9c88ee33"
+        },
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "docs/evaluation/workflow.md",
+          "sha256": "3ccf73e3bd58ff698533a4b7dc91be58db1eb5a3c49c9217b793c80fd298d0c9"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Validate reference expectations with domain experts.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-UI-001",
+      "name": "Offline reviewer desk",
+      "type": "interface",
+      "maturity": "working_demo",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "Capture verdicts and rationale; export run-bound review files.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "packages/eval-python/reviewer.html",
+          "sha256": "88c877f28ea25f92a7eb1d2b494c666fde6176a9529617562bf86af4c206ed70"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Add authenticated reviewer separation for institutional use.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-EVID-001",
+      "name": "Fixture receipts and regression demonstration",
+      "type": "evidence",
+      "maturity": "working_demo",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "Hand-authored example improves from 20/25 to 21/25 while introducing two regressions.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "packages/eval-python/demo/comparison.json",
+          "sha256": "59a47c1dc38add8bbf931d47079f4b01a5cdfa42c00508aae44cf5623736199b"
+        },
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "packages/eval-python/demo/candidate/receipt.json",
+          "sha256": "bb24c9599e65b570c787473f83662a944e6919e66bf669c38e16d620f500ad27"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Retain fixture label; add actual measured runs separately.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-CONTENT-001",
+      "name": "Who Evaluates the Evaluators?",
+      "type": "content",
+      "maturity": "draft",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "Explains the quality of evaluation judgment.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "docs/evaluation/articles/01-who-evaluates-the-evaluators.md",
+          "sha256": "1fb33c8742e155ae4891fe43b0385cf57d772b81c8095b8f4a9afcad77daa6c4"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Editorial review and deliberate publication.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-CONTENT-002",
+      "name": "Your AI Passed the Test. What Did That Authorize?",
+      "type": "content",
+      "maturity": "draft",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "Connects evidence to permitted use and reassessment.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "docs/evaluation/articles/02-what-did-the-test-authorize.md",
+          "sha256": "3f102d39d5cd3ab0cd8640b969e554a1e007a760d2c68a16bab3d75e70152471"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Editorial review and deliberate publication.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-PLAYBOOK-001",
+      "name": "Delivery and content launch playbook",
+      "type": "playbook",
+      "maturity": "draft",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "Scope, delivery sequence, buyer intake and demo narrative.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "docs/evaluation/workflow-evaluation-sprint.md",
+          "sha256": "d50f276490cc355b235aa6c4162a39139867162b83bb97aa673200a57e9bb27e"
+        },
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "docs/evaluation/content-and-launch.md",
+          "sha256": "a9c081c11f0b3a9126cdec8ab5f9d4c349dca00c966ae80e8ecb5a33d03b70f9"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Validate scope, effort and buyer demand.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-PLAN-001",
+      "name": "OpenWarrant Studio adapter roadmap",
+      "type": "roadmap",
+      "maturity": "proposed",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "Proposed evidence-to-decision link; adapter not implemented.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "docs/evaluation/integration.md",
+          "sha256": "bb3793e133a63994e3ae1156b5498e39e28790e4e019bb5d0507914e11b4fbc7"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [
+        "CT-OFF-001"
+      ],
+      "depends_on": [],
+      "next_action": "Inspect Studio and agree the shared data contract.",
+      "last_reviewed": "2026-09-05"
+    },
+    {
+      "id": "CT-OFF-001",
+      "name": "OpenWarrant Eval / Workflow Evaluation Sprint",
+      "type": "offering",
+      "maturity": "draft",
+      "portfolio_home": "InnerLearn · fCAIGO / Capability Treasury",
+      "steward": "Andrew Plummer",
+      "purpose": "A proposed bounded engagement supporting one accountable decision.",
+      "sources": [
+        {
+          "repository": "tan2line/openwarrant",
+          "path": "docs/capability-treasury/offerings/CT-OFF-001-openwarrant-eval.md",
+          "sha256": "5a04b5780ec466c2c2bd9b1459b0f76ff128cd17258ffd91a93557758a88fdf8"
+        }
+      ],
+      "license_context": "Apache-2.0 repository materials; existing terms retained",
+      "legal_ownership_status": "Not independently assessed; registration records portfolio placement, not assignment",
+      "supports_offerings": [],
+      "depends_on": [
+        "CT-CODE-001",
+        "CT-CODE-002",
+        "CT-DATA-001",
+        "CT-METHOD-001",
+        "CT-UI-001",
+        "CT-EVID-001",
+        "CT-CONTENT-001",
+        "CT-CONTENT-002",
+        "CT-PLAYBOOK-001"
+      ],
+      "next_action": "Validate the proposed $7,500 founding fee with prospective buyers.",
+      "last_reviewed": "2026-09-05"
+    }
+  ]
+}
