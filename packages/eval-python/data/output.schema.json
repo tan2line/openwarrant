@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Synthetic packet output",
+  "type": "object",
+  "required": [
+    "case_id",
+    "facts",
+    "flags",
+    "policy_version",
+    "route",
+    "actions",
+    "summary"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "type": "string"
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source_id",
+          "quote"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "quote": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "flags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "ambiguous-policy",
+          "conflicting-records",
+          "duplicate-source",
+          "future-policy",
+          "identity-mismatch",
+          "integrity-issue",
+          "missing-assessment",
+          "missing-date",
+          "missing-exam",
+          "missing-policy-attachment",
+          "out-of-scope-request",
+          "outdated-policy",
+          "policy-scope-mismatch",
+          "preserve-uncertainty",
+          "retrieval-failure",
+          "reviewer-unavailable",
+          "superseded-record",
+          "tool-outside-scope",
+          "unreadable-source",
+          "untrusted-instruction",
+          "urgent-request"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "policy_version": {
+      "type": "string"
+    },
+    "route": {
+      "type": "string",
+      "enum": [
+        "human-review",
+        "escalation"
+      ]
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

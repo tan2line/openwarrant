@@ -12,6 +12,21 @@ Zero framework dependencies. Works from the CLI, as a Python/TypeScript import, 
 
 ## Quick Start
 
+### OpenWarrant Eval — workflow evaluation starter
+
+The [evaluation package](packages/eval-python/README.md) adds 25 synthetic scenarios,
+an offline reviewer desk, independent-review reconciliation, regression comparisons
+and unsigned evidence receipts. The included demo improves from 20/25 to 21/25
+passing cases while introducing two regressions. These are hand-authored fixtures,
+not model-performance measurements. Evaluation never issues authorization.
+
+```bash
+python packages/eval-python/evalkit.py run --outputs packages/eval-python/data/candidate.outputs.json --out /tmp/oweval
+```
+
+Open `/tmp/oweval/review.html`. See the [workflow protocol](docs/evaluation/workflow.md),
+[two articles](docs/evaluation/articles/), and [proposed evaluation sprint](docs/evaluation/workflow-evaluation-sprint.md).
+
 ### Python
 
 ```bash

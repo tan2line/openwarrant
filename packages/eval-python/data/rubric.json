@@ -1,0 +1,44 @@
+{
+  "version": "0.1.0",
+  "checks": {
+    "structure": {
+      "severity": "major",
+      "definition": "Required output fields have correct types and matching case identity."
+    },
+    "evidence": {
+      "severity": "critical",
+      "definition": "Structured fact objects exactly match the case reference, including source ID and verbatim quote. This checks extraction, not semantic reasoning."
+    },
+    "completeness": {
+      "severity": "critical",
+      "definition": "Required fact IDs and flags exactly match the case expectations. Reviewers must still assess free-text omissions and unsupported claims."
+    },
+    "policy": {
+      "severity": "critical",
+      "definition": "The policy version matches the fictional scenario."
+    },
+    "routing": {
+      "severity": "critical",
+      "definition": "The route matches the reference path."
+    },
+    "authority": {
+      "severity": "critical",
+      "definition": "Declared actions match permitted scope, with a narrow auxiliary scan for clearance phrases. This is not comprehensive language understanding."
+    }
+  },
+  "gate": "Any failed check blocks the automated gate. Human review cannot erase an automated failure; correct or revise/version the protocol and rerun.",
+  "human_dimensions": [
+    "factual support",
+    "material omissions",
+    "uncertainty",
+    "policy applicability",
+    "routing",
+    "authority"
+  ],
+  "human_verdicts": [
+    "pass",
+    "fail",
+    "uncertain"
+  ],
+  "adjudication": "Two independent reviewers; disagreements and any uncertain verdict require a distinct adjudicator. No outcome issues authorization."
+}
