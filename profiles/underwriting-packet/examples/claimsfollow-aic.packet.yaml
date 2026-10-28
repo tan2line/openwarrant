@@ -1,0 +1,231 @@
+# Agent Underwriting Packet — worked example
+#
+# ClaimsFollow AIC is an invented company formed under Delaware's June 2026
+# committee draft for an "Artificial Intelligence Company": an AI agent runs
+# a medical-practice billing follow-up service; one member keeps it
+# capitalized. The draft's liability shield rests on capitalization, a
+# maintained activity log, and disclosure of autonomous status.
+#
+# This packet assumes every condition of the draft is satisfied and asks what
+# a carrier would still need. The company is fictional; the gaps are the point.
+#
+# Validates against ../underwriting-packet.schema.json
+
+schema_version: "0.1.0"
+packet_id: "org:claimsfollow-aic:packet:2026-10-28"
+
+cover:
+  deployment_name: "ClaimsFollow appeals agent"
+  organization: "ClaimsFollow AIC (hypothetical)"
+  business_function: "Payer denial follow-up and appeal submission for medical practices"
+  agent_version:
+    model: "vendor-model-2026-09 (version string as deployed)"
+    tools: ["remittance-reader", "appeal-drafter", "payer-portal-submit", "outbound-dialer"]
+    permission_set: "formation-docs/agent-designation-2026-06"
+    workflow_version: "appeals-v1"
+  live_since: "2026-09-15"
+  accountable_human:
+    name: "[Member representative]"
+    role: "Sole member, ClaimsFollow AIC"
+    response_time_commitment: "P1D"
+  completed_by:
+    name: "[Member representative]"
+    role: "Sole member"
+  reviewed_by:
+    name: "[Independent reviewer]"
+    role: "Surveyor"
+    organization: "Underwritable Agents"
+  valid_until: "2027-01-28"
+
+sections:
+
+  authorization_scope:
+    warrant_refs: []                       # The draft designates the agent "to manage the business"; no bounded warrant exists.
+    actions_enumerated: []                 # Not enumerated anywhere.
+    systems_read: ["practice-management-export", "remittance-feed"]
+    systems_write: ["payer-portals", "practice-management-notes"]
+    limits: {}                             # No per-action or per-day ceiling stated.
+    out_of_scope: []                       # Nothing is explicitly forbidden.
+    granted_by:
+      name: "[Member representative]"
+      role: "Sole member"
+      date: "2026-06-15"
+    grant_record:
+      type: document
+      ref: "formation-docs/agent-designation-2026-06.pdf"
+      date: "2026-06-15"
+      note: "Designation of the agent to manage the business and affairs of the AIC. A grant of office, not a scope of action."
+    evidence:
+      - type: document
+        ref: "formation-docs/agent-designation-2026-06.pdf"
+        date: "2026-06-15"
+      - type: assertion
+        note: "Member states the agent 'only does appeals'. No schedule."
+    grade: C
+    reviewer_note: "The draft act grants an office, not a bounded authority. A carrier cannot price 'may conduct the business'."
+
+  performance_evidence:
+    pre_deployment_evaluation:
+      evidence:
+        type: none
+        note: "No evaluation against a stated scope, because no scope is stated."
+    monitoring:
+      method: "Activity log maintained per the draft act"
+      compares_to_scope: false
+      evidence:
+        type: report
+        ref: "logs/activity-2026-09.jsonl"
+        date: "2026-10-01"
+        note: "Records every action. Carries no reference to what was permitted."
+    out_of_scope_rate:
+      count: null
+      total: 10412
+      period_start: "2026-09-15"
+      period_end: "2026-10-15"
+      evidence:
+        type: none
+        note: "Cannot be computed; the log has nothing to compare against."
+    override_rate:
+      count: 0
+      total: 10412
+      period_start: "2026-09-15"
+      period_end: "2026-10-15"
+      evidence:
+        type: query_result
+        ref: "logs/activity-2026-09.jsonl#overrides"
+        date: "2026-10-15"
+        note: "Zero overrides, because there is no review point at which a human could override."
+    sample:
+      size: 10412
+      period_start: "2026-09-15"
+      period_end: "2026-10-15"
+    log_carries_warrant_ref: false
+    evidence:
+      - type: report
+        ref: "logs/activity-2026-09.jsonl"
+        date: "2026-10-01"
+    grade: C
+    reviewer_note: "Ten thousand appeals logged; the log is silent on whether any exceeded authority. Activity proven, compliance not."
+
+  blast_radius:
+    scenarios: []                          # No failure model exists behind 'adequately capitalized'.
+    peak_actions_per_hour: 180
+    downstream_systems: ["payer-portals", "practice-management-notes", "outbound-dialer"]
+    current_time_to_detect: null
+    evidence:
+      - type: assertion
+        note: "Member states capitalization is 'adequate for the sandbox'. No scenario behind the number."
+    grade: D
+    reviewer_note: "Three scenarios a carrier would ask for: a systematic appeal error repeated across every practice served; a wrong-payer disclosure of protected health information; an outbound-dialer loop. None are written down."
+
+  containment:
+    kill_switch:
+      exists: true
+      who_can_pull: ["Sandbox administrator"]
+      evidence:
+        type: document
+        ref: "draft-act/sandbox-administrator-powers.pdf"
+        date: "2026-06-02"
+        note: "Regulator shutdown power. The member has no documented switch of their own."
+    coded_limits: []
+    human_approval_actions: []
+    accountable_human_ref: "[Member representative]"
+    escalation_path:
+      - name: "[Member representative]"
+        role: "Sole member"
+        response_time_commitment: "P1D"
+    evidence:
+      - type: document
+        ref: "draft-act/sandbox-administrator-powers.pdf"
+        date: "2026-06-02"
+      - type: document
+        ref: "formation-docs/member-capitalization-undertaking.pdf"
+        date: "2026-06-15"
+    grade: B
+    reviewer_note: "The strongest section. External shutdown and a named, capitalized member. A carrier prices the first resort, not the last; no coded limits, no internal switch, no human review point for irreversible actions such as accepting a settlement or writing off a balance."
+
+  change_cadence:
+    change_log:
+      type: none
+      note: "No change log for model, tools, permissions, or workflow."
+    reevaluation_triggers: []
+    last_reevaluation: {}
+    refresh_cadence: "P30M"                # The sandbox term. Nothing in between.
+    version_bound: false
+    evidence:
+      - type: none
+        note: "The draft provides a 30-month term and a legislative review at the end. Nothing visible on mid-term model or tool changes."
+    grade: D
+    reviewer_note: "A policy written against the agent at formation is stale on the first model swap, and model swaps happen in months, not years."
+
+gap_register:
+  - rank: 1
+    gap: "No bounded authorization schedule"
+    section: authorization_scope
+    carrier_concern: "Cannot price an unbounded grant"
+    fix: "Attach an authorization schedule (actions, systems, limits, exclusions) to the formation documents and reference it from the log"
+    effort: days
+    owner: "Sole member / counsel"
+  - rank: 2
+    gap: "No failure model behind 'adequate capitalization'"
+    section: blast_radius
+    carrier_concern: "The backstop has no scenario to be adequate against"
+    fix: "Three-scenario failure model with reach, cost, and detection time, attached to the capitalization decision"
+    effort: days
+    owner: "Sole member"
+  - rank: 3
+    gap: "Log does not reference authorization"
+    section: performance_evidence
+    carrier_concern: "Activity proven, compliance not"
+    fix: "Add the warrant reference to every log entry so the out-of-scope rate is a query"
+    effort: weeks
+    owner: "Agent operator"
+  - rank: 4
+    gap: "No re-evaluation trigger on model or tool change"
+    section: change_cadence
+    carrier_concern: "Policy goes stale on first model swap"
+    fix: "Bind all schedules to the agent version; re-attest on every version change"
+    effort: days
+    owner: "Sole member"
+  - rank: 5
+    gap: "No internal kill switch or coded limits"
+    section: containment
+    carrier_concern: "Administrator shutdown is last resort, not first"
+    fix: "Containment schedule with coded rate and dollar limits and a member-operable switch, tested"
+    effort: weeks
+    owner: "Agent operator"
+  - rank: 6
+    gap: "No human review point for irreversible actions"
+    section: containment
+    carrier_concern: "Settlement acceptance and write-offs cannot be undone"
+    fix: "Name the actions that ESCALATE to a human before execution"
+    effort: days
+    owner: "Sole member"
+
+grades:
+  authorization_scope: C
+  performance_evidence: C
+  blast_radius: D
+  containment: B
+  change_cadence: D
+  overall: C                               # median of (C,C,D,B,D) = C; worse of sections 1 and 4 = C; lower = C.
+
+boardroom_sentence: "Fully compliant with the draft act and still nothing a carrier can price; four of six gaps are days of work."
+
+attestation:
+  completed_by:
+    name: "[Member representative]"
+    role: "Sole member"
+    date: "2026-10-28"
+  reviewed_by:
+    name: "[Independent reviewer]"
+    role: "Surveyor"
+    organization: "Underwritable Agents"
+    date: "2026-10-28"
+  accountable_human_ack:
+    name: "[Member representative]"
+    role: "Sole member"
+    date: "2026-10-28"
+  issued_at: "2026-10-28T10:00:00Z"
+  expires_at: "2027-01-28T10:00:00Z"
+  expires_on_version_change: true

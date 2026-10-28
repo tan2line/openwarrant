@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.ai/profiles/underwriting-packet/0.1.0/underwriting-packet.schema.json",
+  "title": "Agent Underwriting Packet",
+  "description": "OpenWarrant profile v0.1: the evidence an underwriter, broker, board, or regulator needs to accept the risk of an AI agent that takes consequential actions. Read-only with respect to the agent; references warrants by id and audit records by hash.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "packet_id", "cover", "sections", "gap_register", "grades", "attestation"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "0.1.0" },
+    "packet_id": { "type": "string", "minLength": 1, "description": "Institution-namespaced identifier, e.g. 'org:claimsfollow:packet:2026-10'." },
+
+    "cover": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deployment_name", "organization", "business_function", "agent_version", "live_since", "accountable_human", "completed_by", "reviewed_by", "valid_until"],
+      "properties": {
+        "deployment_name": { "type": "string" },
+        "organization": { "type": "string" },
+        "business_function": { "type": "string" },
+        "agent_version": { "$ref": "#/$defs/agent_version" },
+        "live_since": { "$ref": "#/$defs/date" },
+        "accountable_human": { "$ref": "#/$defs/person_with_response" },
+        "completed_by": { "$ref": "#/$defs/person" },
+        "reviewed_by": { "$ref": "#/$defs/person" },
+        "valid_until": { "$ref": "#/$defs/date" }
+      }
+    },
+
+    "sections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorization_scope", "performance_evidence", "blast_radius", "containment", "change_cadence"],
+      "properties": {
+
+        "authorization_scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["warrant_refs", "actions_enumerated", "systems_read", "systems_write", "limits", "out_of_scope", "granted_by", "grant_record", "evidence", "grade"],
+          "properties": {
+            "warrant_refs": { "type": "array", "items": { "type": "string" }, "description": "warrant.id values this deployment executes under. Empty array is allowed and will grade D." },
+            "actions_enumerated": { "type": "array", "items": { "type": "string" } },
+            "systems_read": { "type": "array", "items": { "type": "string" } },
+            "systems_write": { "type": "array", "items": { "type": "string" } },
+            "limits": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "per_action": { "$ref": "#/$defs/limit" },
+                "per_day": { "$ref": "#/$defs/limit" }
+              }
+            },
+            "out_of_scope": { "type": "array", "items": { "type": "string" }, "description": "Actions explicitly forbidden." },
+            "granted_by": { "$ref": "#/$defs/grant" },
+            "grant_record": { "$ref": "#/$defs/evidence_item", "description": "Where the grant is recorded." },
+            "evidence": { "$ref": "#/$defs/evidence_list" },
+            "grade": { "$ref": "#/$defs/grade" },
+            "reviewer_note": { "type": "string" }
+          }
+        },
+
+        "performance_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pre_deployment_evaluation", "monitoring", "out_of_scope_rate", "override_rate", "sample", "log_carries_warrant_ref", "evidence", "grade"],
+          "properties": {
+            "pre_deployment_evaluation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["evidence"],
+              "properties": {
+                "evidence": { "$ref": "#/$defs/evidence_item" },
+                "result_summary": { "type": "string" }
+              }
+            },
+            "monitoring": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["compares_to_scope", "evidence"],
+              "properties": {
+                "method": { "type": "string" },
+                "compares_to_scope": { "type": "boolean", "description": "True only if each logged action is compared to the authorization it executed under." },
+                "evidence": { "$ref": "#/$defs/evidence_item" }
+              }
+            },
+            "out_of_scope_rate": { "$ref": "#/$defs/rate" },
+            "override_rate": { "$ref": "#/$defs/rate" },
+            "sample": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["size", "period_start", "period_end"],
+              "properties": {
+                "size": { "type": "integer", "minimum": 0 },
+                "period_start": { "$ref": "#/$defs/date" },
+                "period_end": { "$ref": "#/$defs/date" }
+              }
+            },
+            "log_carries_warrant_ref": { "type": "boolean", "description": "True if every audit record carries the warrant.id it executed under." },
+            "evidence": { "$ref": "#/$defs/evidence_list" },
+            "grade": { "$ref": "#/$defs/grade" },
+            "reviewer_note": { "type": "string" }
+          }
+        },
+
+        "blast_radius": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scenarios", "peak_actions_per_hour", "downstream_systems", "current_time_to_detect", "evidence", "grade"],
+          "properties": {
+            "scenarios": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["description", "reach", "detection_time"],
+                "properties": {
+                  "description": { "type": "string" },
+                  "reach": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "records": { "type": "integer", "minimum": 0 },
+                      "people": { "type": "integer", "minimum": 0 },
+                      "dollars": { "type": "number", "minimum": 0 }
+                    }
+                  },
+                  "detection_time": { "$ref": "#/$defs/duration" }
+                }
+              }
+            },
+            "peak_actions_per_hour": { "type": ["integer", "null"], "minimum": 0 },
+            "downstream_systems": { "type": "array", "items": { "type": "string" } },
+            "current_time_to_detect": { "oneOf": [ { "$ref": "#/$defs/duration" }, { "type": "null" } ] },
+            "evidence": { "$ref": "#/$defs/evidence_list" },
+            "grade": { "$ref": "#/$defs/grade" },
+            "reviewer_note": { "type": "string" }
+          }
+        },
+
+        "containment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kill_switch", "coded_limits", "human_approval_actions", "accountable_human_ref", "escalation_path", "evidence", "grade"],
+          "properties": {
+            "kill_switch": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["exists"],
+              "properties": {
+                "exists": { "type": "boolean" },
+                "who_can_pull": { "type": "array", "items": { "type": "string" } },
+                "latency": { "$ref": "#/$defs/duration" },
+                "last_tested": { "$ref": "#/$defs/date" },
+                "evidence": { "$ref": "#/$defs/evidence_item" }
+              }
+            },
+            "coded_limits": { "type": "array", "items": { "type": "string" }, "description": "Limits enforced in code or by the warrant engine, not by policy." },
+            "human_approval_actions": { "type": "array", "items": { "type": "string" }, "description": "Actions that ESCALATE to a human before execution." },
+            "accountable_human_ref": { "type": "string", "description": "Must match cover.accountable_human.name." },
+            "escalation_path": { "type": "array", "items": { "$ref": "#/$defs/person_with_response" } },
+            "rollback_procedure": { "$ref": "#/$defs/evidence_item" },
+            "vendor_obligations": { "$ref": "#/$defs/evidence_item" },
+            "evidence": { "$ref": "#/$defs/evidence_list" },
+            "grade": { "$ref": "#/$defs/grade" },
+            "reviewer_note": { "type": "string" }
+          }
+        },
+
+        "change_cadence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["change_log", "reevaluation_triggers", "last_reevaluation", "refresh_cadence", "version_bound", "evidence", "grade"],
+          "properties": {
+            "change_log": { "$ref": "#/$defs/evidence_item" },
+            "reevaluation_triggers": { "type": "array", "items": { "type": "string", "enum": ["model_version_change", "tool_added_or_removed", "permission_change", "workflow_change", "incident", "scheduled"] } },
+            "last_reevaluation": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "date": { "$ref": "#/$defs/date" },
+                "signed_by": { "$ref": "#/$defs/person" }
+              }
+            },
+            "refresh_cadence": { "$ref": "#/$defs/duration" },
+            "version_bound": { "type": "boolean", "description": "True if sections 1-4 are tied to cover.agent_version." },
+            "evidence": { "$ref": "#/$defs/evidence_list" },
+            "grade": { "$ref": "#/$defs/grade" },
+            "reviewer_note": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "gap_register": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rank", "gap", "section", "carrier_concern", "fix", "effort"],
+        "properties": {
+          "rank": { "type": "integer", "minimum": 1 },
+          "gap": { "type": "string" },
+          "section": { "$ref": "#/$defs/section_name" },
+          "carrier_concern": { "type": "string" },
+          "fix": { "type": "string" },
+          "effort": { "type": "string", "enum": ["days", "weeks", "months"] },
+          "owner": { "type": "string" },
+          "target_date": { "$ref": "#/$defs/date" }
+        }
+      }
+    },
+
+    "grades": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorization_scope", "performance_evidence", "blast_radius", "containment", "change_cadence", "overall"],
+      "properties": {
+        "authorization_scope": { "$ref": "#/$defs/grade" },
+        "performance_evidence": { "$ref": "#/$defs/grade" },
+        "blast_radius": { "$ref": "#/$defs/grade" },
+        "containment": { "$ref": "#/$defs/grade" },
+        "change_cadence": { "$ref": "#/$defs/grade" },
+        "overall": { "$ref": "#/$defs/grade" }
+      }
+    },
+
+    "boardroom_sentence": { "type": "string", "maxLength": 280 },
+
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["completed_by", "reviewed_by", "accountable_human_ack", "issued_at", "expires_at", "expires_on_version_change"],
+      "properties": {
+        "completed_by": { "$ref": "#/$defs/signature_block" },
+        "reviewed_by": { "$ref": "#/$defs/signature_block" },
+        "accountable_human_ack": { "$ref": "#/$defs/signature_block" },
+        "packet_hash": { "$ref": "#/$defs/hash" },
+        "issued_at": { "$ref": "#/$defs/datetime" },
+        "expires_at": { "$ref": "#/$defs/datetime" },
+        "expires_on_version_change": { "type": "boolean", "const": true }
+      }
+    }
+  },
+
+  "$defs": {
+    "date": { "type": "string", "format": "date" },
+    "datetime": { "type": "string", "format": "date-time" },
+    "duration": { "type": "string", "pattern": "^P(?!$)(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(?=\\d)(\\d+H)?(\\d+M)?(\\d+S)?)?$", "description": "ISO 8601 duration, e.g. PT15M, P1D, P90D." },
+    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "grade": { "type": "string", "enum": ["A", "B", "C", "D"] },
+    "section_name": { "type": "string", "enum": ["authorization_scope", "performance_evidence", "blast_radius", "containment", "change_cadence"] },
+    "person": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role"],
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "organization": { "type": "string" }
+      }
+    },
+    "person_with_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role"],
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "organization": { "type": "string" },
+        "response_time_commitment": { "$ref": "#/$defs/duration" }
+      }
+    },
+    "grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role", "date"],
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "date": { "$ref": "#/$defs/date" }
+      }
+    },
+    "limit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dollars": { "type": "number", "minimum": 0 },
+        "actions": { "type": "integer", "minimum": 0 },
+        "records": { "type": "integer", "minimum": 0 },
+        "clinical": { "type": "string" }
+      }
+    },
+    "rate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "total"],
+      "properties": {
+        "count": { "type": ["integer", "null"], "minimum": 0 },
+        "total": { "type": ["integer", "null"], "minimum": 0 },
+        "period_start": { "$ref": "#/$defs/date" },
+        "period_end": { "$ref": "#/$defs/date" },
+        "evidence": { "$ref": "#/$defs/evidence_item" }
+      }
+    },
+    "evidence_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["document", "report", "query_result", "signed_schedule", "assertion", "none"] },
+        "ref": { "type": "string" },
+        "hash": { "$ref": "#/$defs/hash" },
+        "date": { "$ref": "#/$defs/date" },
+        "note": { "type": "string" }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "enum": ["document", "report", "query_result", "signed_schedule"] } } }, "then": { "required": ["ref", "date"] } }
+      ]
+    },
+    "evidence_list": { "type": "array", "items": { "$ref": "#/$defs/evidence_item" } },
+    "agent_version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "tools", "permission_set", "workflow_version"],
+      "properties": {
+        "model": { "type": "string", "description": "Model identifier and version as deployed." },
+        "tools": { "type": "array", "items": { "type": "string" } },
+        "permission_set": { "type": "string", "description": "Reference to the permission set or warrant bundle in force." },
+        "workflow_version": { "type": "string" }
+      }
+    },
+    "signature_block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role", "date"],
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "organization": { "type": "string" },
+        "date": { "$ref": "#/$defs/date" },
+        "signature": { "type": "string", "description": "ed25519:<base64> when signed; omit for unsigned drafts." }
+      }
+    }
+  }
+}
